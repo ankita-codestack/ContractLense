@@ -1,0 +1,40 @@
+.doc-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.doc-preview-page {
+  width: 92px;
+  height: 118px;
+  border: 1px solid var(--border-strong);
+  background: var(--ivory);
+  box-shadow: var(--shadow-raised);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
+.doc-preview--compact .doc-preview-page {
+  width: 72px;
+  height: 92px;
+  padding: 12px 10px;
+  gap: 7px;
+}
+
+.doc-preview-line {
+  display: block;
+  height: 5px;
+  background: var(--border);
+}
+
+.doc-preview-name {
+  color: var(--ink-faint);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

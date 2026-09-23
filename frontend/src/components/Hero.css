@@ -1,0 +1,55 @@
+.hero {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 96px 24px 64px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.hero .eyebrow-mono {
+  color: var(--ink-faint);
+}
+
+.hero-title {
+  font-size: 42px;
+  line-height: 1.15;
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.hero-subtitle {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  max-width: 520px;
+  margin: 0;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.hero-btn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid var(--ink);
+}
+
+.hero-btn--primary {
+  background: var(--ink);
+  color: var(--ivory);
+}
+
+.hero-btn--secondary {
+  background: transparent;
+  color: var(--ink);
+}

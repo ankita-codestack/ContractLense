@@ -1,0 +1,144 @@
+/* ------------------------------------------------------------------
+   ContractLens — Design Tokens
+   Editorial legal-tech: ivory ground, near-black ink, navy accent,
+   burgundy/amber for risk states, thin intentional borders.
+------------------------------------------------------------------- */
+
+:root {
+  --ivory: #f4f0e6;
+  --ivory-deep: #ebe4d3;
+  --paper: #fbf9f3;
+
+  --ink: #17181b;
+  --ink-soft: #45484e;
+  --ink-faint: #7c7f86;
+
+  --navy: #1c2740;
+  --navy-soft: #2c3a5c;
+
+  --burgundy: #7a2e2e;
+  --burgundy-tint: #f2e3e0;
+  --amber: #96661f;
+  --amber-tint: #f2e7d3;
+  --teal: #2e5c50;
+  --teal-tint: #dde9e4;
+
+  --border: rgba(23, 24, 27, 0.16);
+  --border-strong: rgba(23, 24, 27, 0.34);
+  --border-hairline: rgba(23, 24, 27, 0.09);
+
+  --shadow-raised: 0 1px 0 rgba(23, 24, 27, 0.05), 0 10px 24px -12px rgba(23, 24, 27, 0.28);
+  --shadow-deep: 0 2px 0 rgba(23, 24, 27, 0.06), 0 24px 48px -20px rgba(23, 24, 27, 0.38);
+
+  --font-display: "Fraunces", "Iowan Old Style", serif;
+  --font-body: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --container: 1240px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--ivory);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--navy);
+  color: var(--ivory);
+}
+
+:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border-strong);
+  padding: 13px 22px;
+  font-size: 14.5px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--ink);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--ivory);
+  border-color: var(--ink);
+}
+
+.btn-primary:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+
+.btn-quiet {
+  border-color: transparent;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.btn-quiet:hover {
+  color: var(--navy-soft);
+}
+
+.eyebrow-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,112 @@
+.risk-empty {
+  padding: 60px 0;
+  color: var(--ink-soft);
+}
+
+.risk-empty p {
+  margin-top: 10px;
+}
+
+.risk-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.risk-filter {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 14px;
+  border: 1px solid var(--border-strong);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.risk-filter:hover {
+  color: var(--ink);
+}
+
+.risk-filter--active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--ivory);
+}
+
+.risk-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.risk-card {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-strong);
+  background: var(--paper);
+  padding: 20px 22px;
+}
+
+.risk-card--high {
+  border-left-color: var(--danger, #a33f2c);
+}
+
+.risk-card--review {
+  border-left-color: #a3792c;
+}
+
+.risk-card--standard {
+  border-left-color: var(--ink-faint);
+}
+
+.risk-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.risk-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.risk-dot--high {
+  background: var(--danger, #a33f2c);
+}
+
+.risk-dot--review {
+  background: #a3792c;
+}
+
+.risk-dot--standard {
+  background: var(--ink-faint);
+}
+
+.risk-card-title {
+  font-size: 15.5px;
+  flex: 1;
+}
+
+.risk-card-level {
+  color: var(--ink-faint);
+}
+
+.risk-card-reason {
+  margin-top: 10px;
+  color: var(--ink-soft);
+  max-width: 68ch;
+}
+
+.risk-card-rec {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.risk-card-rec strong {
+  font-weight: 600;
+}

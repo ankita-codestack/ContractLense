@@ -1,0 +1,19 @@
+.app-footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.app-footer .eyebrow-mono {
+  color: var(--ink-faint);
+}
+
+.app-footer-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  line-height: 1.5;
+}

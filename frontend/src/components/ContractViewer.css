@@ -1,0 +1,127 @@
+.viewer {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.viewer-empty {
+  padding: 60px 0;
+  color: var(--ink-soft);
+}
+
+.viewer-empty p {
+  margin-top: 10px;
+}
+
+.viewer-list ul {
+  list-style: none;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.viewer-list-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-hairline);
+  padding: 14px 4px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--ink-soft);
+  transition: color 0.15s ease;
+}
+
+.viewer-list-item:hover {
+  color: var(--ink);
+}
+
+.viewer-list-item--active {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.viewer-list-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viewer-tag {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--border-strong);
+  color: var(--ink-faint);
+}
+
+.viewer-tag--high {
+  border-color: var(--danger, #a33f2c);
+  color: var(--danger, #a33f2c);
+}
+
+.viewer-tag--review {
+  border-color: #a3792c;
+  color: #a3792c;
+}
+
+.viewer-detail {
+  border-left: 1px solid var(--border-hairline);
+  padding-left: 40px;
+}
+
+.viewer-detail-title {
+  font-size: 22px;
+  margin-top: 10px;
+}
+
+.viewer-detail-summary {
+  margin-top: 14px;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+
+.viewer-source {
+  margin: 28px 0 0;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.viewer-source p {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.viewer-meta {
+  margin-top: 24px;
+}
+
+.viewer-meta p {
+  margin-top: 6px;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 720px) {
+  .viewer {
+    grid-template-columns: 1fr;
+  }
+  .viewer-detail {
+    border-left: none;
+    border-top: 1px solid var(--border-hairline);
+    padding-left: 0;
+    padding-top: 32px;
+  }
+}
