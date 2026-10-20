@@ -1,10 +1,9 @@
 import { useState } from "react";
 import "./ContractViewer.css";
 
-export default function ContractViewer({ clauses }) {
+export default function ContractViewer({ clauses = [] }) {
   const [activeId, setActiveId] = useState(clauses?.[0]?.id ?? null);
-  const active = clauses.find((c) => c.id === activeId) ?? clauses[0];
-
+  const active = clauses.find((c) => c.id === activeId) ?? clauses[0] ?? null;
   if (!clauses.length) {
     return (
       <div className="viewer-empty">

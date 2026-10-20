@@ -7,7 +7,7 @@ const LEVELS = [
   { id: "standard", label: "Standard" },
 ];
 
-export default function RiskPanel({ risks }) {
+export default function RiskPanel({ risks = [] }) {
   const [filter, setFilter] = useState("all");
 
   const counts = useMemo(() => {
