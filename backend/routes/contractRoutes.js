@@ -1,7 +1,10 @@
 const express = require("express");
 const multer = require("multer");
 
-const { analyze } = require("../controllers/contractController");
+const {
+  analyze,
+  askQuestion,
+} = require("../controllers/contractController");
 
 const router = express.Router();
 
@@ -17,5 +20,6 @@ router.get("/test", (req, res) => {
 });
 
 router.post("/analyze", upload.single("contract"), analyze);
+router.post("/qa", askQuestion);
 
 module.exports = router;

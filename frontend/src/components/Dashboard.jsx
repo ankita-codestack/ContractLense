@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ContractViewer from "./ContractViewer.jsx";
 import RiskPanel from "./RiskPanel.jsx";
 import Timeline from "./Timeline.jsx";
@@ -10,22 +10,59 @@ export default function Dashboard({ contract }) {
   const [qaLoading, setQaLoading] = useState(false);
   const [activeClauseId, setActiveClauseId] = useState(null);
 
-  function handleAsk(question) {
-    setQaLoading(true);
-    // TODO: replace with real POST to /api/qa
-    setTimeout(() => {
-      setQaHistory((prev) => [
-        ...prev,
-        {
-          question,
-          answer:
-            "This is a placeholder answer — wire this up to the Q&A agent endpoint to get a real response sourced from the contract.",
-          clauseRef: null,
+    useEffect(() => {
+    setQaHistory(contract.qaSeed || []);
+  }, [contract.fileName, contract.text]);
+
+  
+async function handleAsk(question) {
+  setQaLoading(true);
+
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/contracts/qa",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ]);
-      setQaLoading(false);
-    }, 900);
+        body: JSON.stringify({
+          contractText: (contract.text || "").slice(0, 24000),
+          question,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to answer question.");
+    }
+
+    setQaHistory((prev) => [
+      ...prev,
+      {
+        question,
+        answer: data.answer,
+        clauseRef: data.clauseRef || null,
+      },
+    ]);
+  } catch (error) {
+    console.error("Q&A error:", error);
+
+    setQaHistory((prev) => [
+      ...prev,
+      {
+        question,
+        answer: `Unable to answer: ${error.message}`,
+        clauseRef: null,
+      },
+    ]);
+  } finally {
+    setQaLoading(false);
   }
+}
+
 
   const timelineEvents = (contract.timeline || []).map((t) => ({
     date: t.date,
