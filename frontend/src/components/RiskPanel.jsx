@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from "react";
 import "./RiskPanel.css";
 
@@ -7,18 +8,36 @@ const LEVELS = [
   { id: "standard", label: "Standard" },
 ];
 
-export default function RiskPanel({ risks = [] }) {
+export default function RiskPanel({
+  risks = [],
+  onSelectRisk,
+}) {
   const [filter, setFilter] = useState("all");
 
   const counts = useMemo(() => {
-    const c = { high: 0, review: 0, standard: 0 };
-    risks.forEach((r) => {
-      if (c[r.level] !== undefined) c[r.level] += 1;
+    const result = {
+      high: 0,
+      review: 0,
+      standard: 0,
+    };
+
+    risks.forEach((risk) => {
+      const level = String(risk.level || "").toLowerCase();
+
+      if (result[level] !== undefined) {
+        result[level] += 1;
+      }
     });
-    return c;
+
+    return result;
   }, [risks]);
 
-  const visible = filter === "all" ? risks : risks.filter((r) => r.level === filter);
+  const visible =
+    filter === "all"
+      ? risks
+      : risks.filter(
+          (risk) => String(risk.level || "").toLowerCase() === filter
+        );
 
   if (!risks.length) {
     return (
@@ -33,41 +52,82 @@ export default function RiskPanel({ risks = [] }) {
     <div className="risk-panel">
       <div className="risk-filters">
         <button
-          className={`risk-filter ${filter === "all" ? "risk-filter--active" : ""}`}
+          type="button"
+          className={`risk-filter ${
+            filter === "all" ? "risk-filter--active" : ""
+          }`}
           onClick={() => setFilter("all")}
         >
           All ({risks.length})
         </button>
-        {LEVELS.map((l) => (
+
+        {LEVELS.map((level) => (
           <button
-            key={l.id}
-            className={`risk-filter risk-filter--${l.id} ${
-              filter === l.id ? "risk-filter--active" : ""
+            type="button"
+            key={level.id}
+            className={`risk-filter risk-filter--${level.id} ${
+              filter === level.id ? "risk-filter--active" : ""
             }`}
-            onClick={() => setFilter(l.id)}
+            onClick={() => setFilter(level.id)}
           >
-            {l.label} ({counts[l.id] ?? 0})
+            {level.label} ({counts[level.id]})
           </button>
         ))}
       </div>
 
       <ul className="risk-list">
-        {visible.map((risk) => (
-          <li key={risk.id} className={`risk-card risk-card--${risk.level}`}>
-            <div className="risk-card-head">
-              <span className={`risk-dot risk-dot--${risk.level}`} />
-              <h4 className="risk-card-title">{risk.clauseTitle}</h4>
-              <span className="risk-card-level eyebrow-mono">{risk.level}</span>
-            </div>
-            <p className="risk-card-reason">{risk.reason}</p>
-            {risk.recommendation && (
-              <p className="risk-card-rec">
-                <strong>Suggested action — </strong>
-                {risk.recommendation}
+        {visible.map((risk, index) => (
+          <li
+            key={risk.id ?? `${risk.clauseTitle}-${index}`}
+            className={`risk-card risk-card--${String(
+              risk.level || "standard"
+            ).toLowerCase()}`}
+          >
+            <button
+              type="button"
+              className="risk-card-select"
+              onClick={() => onSelectRisk?.(risk)}
+              aria-label={`View clause: ${risk.clauseTitle || "Related clause"}`}
+            >
+              <div className="risk-card-head">
+                <span
+                  className={`risk-dot risk-dot--${String(
+                    risk.level || "standard"
+                  ).toLowerCase()}`}
+                />
+
+                <h4 className="risk-card-title">
+                  {risk.clauseTitle || "Untitled clause"}
+                </h4>
+
+                <span className="risk-card-level eyebrow-mono">
+                  {risk.level || "standard"}
+                </span>
+              </div>
+
+              <p className="risk-card-reason">
+                {risk.reason || "No additional explanation provided."}
               </p>
-            )}
+
+              {risk.recommendation && (
+                <p className="risk-card-rec">
+                  <strong>Suggested action — </strong>
+                  {risk.recommendation}
+                </p>
+              )}
+
+              <span className="risk-card-open">
+                View related clause ↗
+              </span>
+            </button>
           </li>
         ))}
+
+        {visible.length === 0 && (
+          <li className="risk-empty">
+            <p>No risks found for this filter.</p>
+          </li>
+        )}
       </ul>
     </div>
   );

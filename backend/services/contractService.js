@@ -282,12 +282,15 @@ async function verifyRisks(clauses, existingRisks) {
 
 Verify existing risks against the supplied clause evidence.
 Correct inaccurate reasons and severity levels.
+When possible, use the exact title of the matching supplied clause in clauseTitle.
 Do not invent facts.
 Keep supported risks. Remove a risk only if it is clearly unsupported.
 If evidence is insufficient, retain the risk with level "review".
 Do not add risks without supporting evidence.
+
 Return valid JSON only:
 {"risks":[{"clauseTitle":"string","reason":"string","level":"high"}]}
+
 Allowed levels: high, review, standard.`,
       },
       {
@@ -331,43 +334,75 @@ async function checkConsistency(clauses, financialTerms, timeline) {
     model: "openai/gpt-oss-20b",
     temperature: 0,
     max_completion_tokens: 2500,
-    response_format: {
-      type: "json_object",
+    
+response_format: {
+  type: "json_schema",
+  json_schema: {
+    name: "consistency_check",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        issues: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              description: { type: "string" },
+              severity: {
+                type: "string",
+                enum: ["high", "review", "low"],
+              },
+              evidence: {
+                type: "array",
+                items: { type: "string" },
+              },
+            },
+            required: [
+              "title",
+              "description",
+              "severity",
+              "evidence",
+            ],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["issues"],
+      additionalProperties: false,
     },
+  },
+},
+
     messages: [
       {
         role: "system",
-        content: `You are ContractLens Consistency Checker, the third-stage contract analysis agent.
+        content: `You are ContractLens Consistency Checker.
 
-Find explicit contradictions within the supplied contract evidence.
+Analyze only the supplied contract evidence and identify explicit contradictions.
 
 Check for:
 - Conflicting dates or deadlines for the same event.
 - Inconsistent payment amounts or totals.
 - Contradictory obligations between clauses.
-- Conflicting terms about termination, renewal, or completion.
+- Conflicting termination, renewal, or completion terms.
 
 Rules:
-- Do not treat different dates as contradictions unless they refer to the same event or deadline.
-- Do not assume that missing information is a contradiction.
-- Do not invent facts or issues.
-- Use evidence from the supplied data only.
-- If there are no clearly supported contradictions, return an empty array.
+- Different dates are not contradictions unless they refer to the same event.
+- Missing information is not a contradiction.
+- Never invent facts or issues.
+- Use only the supplied evidence.
+- If no clear contradiction exists, return an empty issues array.
 - Keep descriptions concise.
+- Severity must be exactly high, review, or low.
 
-Return valid JSON only, using this structure:
-{
-  "issues": [
-    {
-      "title": "Short issue title",
-      "description": "Explain the contradiction",
-      "severity": "high",
-      "evidence": ["Relevant clause or term 1", "Relevant clause or term 2"]
-    }
-  ]
-}
+You MUST return a valid JSON object and nothing else.
+The JSON object must have this exact structure:
+{"issues":[{"title":"Short title","description":"Contradiction explained","severity":"high","evidence":["Evidence 1","Evidence 2"]}]}
 
-Allowed severity values: high, review, low.`,
+If there are no contradictions, return exactly:
+{"issues":[]}`,
       },
       {
         role: "user",
@@ -391,9 +426,17 @@ Allowed severity values: high, review, low.`,
     throw new Error("Consistency Checker returned an incomplete response.");
   }
 
-  const parsed = parseJson(content, "consistency check");
+  let parsed;
+
+  try {
+    parsed = parseJson(content, "consistency check");
+  } catch (error) {
+    console.error("Consistency Checker raw response:", content);
+    throw error;
+  }
 
   if (
+    !parsed ||
     !Array.isArray(parsed.issues) ||
     !parsed.issues.every(
       (issue) =>
@@ -405,6 +448,7 @@ Allowed severity values: high, review, low.`,
         issue.evidence.every((item) => typeof item === "string")
     )
   ) {
+    console.error("Consistency Checker returned invalid JSON structure:", parsed);
     throw new Error("Consistency Checker returned an invalid response.");
   }
 
@@ -499,7 +543,9 @@ async function analyzeContract(file) {
     const clauses = uniqueBy(
       extractedResults.flatMap((item) => item.clauses || []),
       (item) => {
-        const section = String(item.section || "").trim().toLowerCase();
+        const section = String(item.section || "")
+          .trim()
+          .toLowerCase();
         const title = (item.title || "").trim().toLowerCase();
         const source = (item.sourceText || "").trim().toLowerCase();
 
@@ -535,41 +581,6 @@ async function analyzeContract(file) {
         error.message
       );
     }
-    
-    let consistencyIssues = [];
-    try {
-      consistencyIssues = await checkConsistency(
-        clauses,
-        financialTerms,
-        timeline
-      );
-
-      console.log 
-        `LLM 3 consistency check completed. Issues found: ${consistencyIssues.length}`
-    } catch (error){
-      console.error(
-        "LLM 3 consistency check failed:",
-        error.message
-      );
-    }
-
-
-    const risks = uniqueBy(
-      verifiedRisks,
-      (item) =>
-        `${(item.clauseTitle || "").trim().toLowerCase()}|${(
-          item.reason || ""
-        ).trim().toLowerCase()}`
-    ).map((risk, index) => ({
-      ...risk,
-      id: `r${index + 1}`,
-      level: risk.level || "review",
-      severity: risk.level || "review",
-      title: risk.clauseTitle || "Contract risk",
-      summary: risk.reason || "",
-      whyItMatters: risk.reason || "",
-      clauseRef: risk.clauseTitle || "",
-    }));
 
     const timeline = uniqueBy(
       extractedResults.flatMap((item) => item.timeline || []),
@@ -578,6 +589,64 @@ async function analyzeContract(file) {
           item.label || ""
         ).trim().toLowerCase()}`
     );
+
+    let consistencyIssues = [];
+
+    try {
+      consistencyIssues = await checkConsistency(
+        clauses,
+        financialTerms,
+        timeline
+      );
+
+      console.log(
+        `LLM 3 consistency check completed. Issues found: ${consistencyIssues.length}`
+      );
+    } catch (error) {
+      console.error(
+        "LLM 3 consistency check failed:",
+        error.message
+      );
+    }
+
+    const risks = uniqueBy(
+      verifiedRisks,
+      (item) =>
+        `${(item.clauseTitle || "").trim().toLowerCase()}|${(
+          item.reason || ""
+        ).trim().toLowerCase()}`
+    ).map((risk, index) => {
+      const normalizedRiskTitle = String(
+        risk.clauseTitle || ""
+      ).trim().toLowerCase();
+
+      const matchedClause = clauses.find(
+        (clause) =>
+          String(clause.title || "").trim().toLowerCase() ===
+            normalizedRiskTitle ||
+          (clause.section &&
+            String(clause.section).trim().toLowerCase() ===
+              normalizedRiskTitle)
+      );
+
+      const level = ["high", "review", "standard"].includes(
+        String(risk.level || "").toLowerCase()
+      )
+        ? String(risk.level).toLowerCase()
+        : "review";
+
+      return {
+        ...risk,
+        id: `r${index + 1}`,
+        clauseId: matchedClause?.id ?? null,
+        level,
+        severity: level,
+        title: risk.clauseTitle || "Contract risk",
+        summary: risk.reason || "",
+        whyItMatters: risk.reason || "",
+        clauseRef: matchedClause?.id || risk.clauseTitle || "",
+      };
+    });
 
     const qaSeed = uniqueBy(
       extractedResults.flatMap((item) => item.qaSeed || []),
@@ -601,6 +670,7 @@ async function analyzeContract(file) {
           clauses: clauses.length,
           risks: risks.length,
           timelineEvents: timeline.length,
+          consistencyIssues: consistencyIssues.length,
         },
         null,
         2

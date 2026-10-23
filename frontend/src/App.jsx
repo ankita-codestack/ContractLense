@@ -50,10 +50,12 @@ export default function App() {
 
   return (
     <div className="app">
-      <Navbar
-        onHome={() => setView("landing")}
-        onAnalyze={() => setView("upload")}
-      />
+      {view !== "dashboard" && (
+  <Navbar
+    onHome={() => setView("landing")}
+    onAnalyze={() => setView("upload")}
+  />
+)}
 
       <AnimatePresence mode="wait">
         {view === "landing" && (

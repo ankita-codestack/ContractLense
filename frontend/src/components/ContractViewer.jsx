@@ -1,9 +1,49 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import "./ContractViewer.css";
 
-export default function ContractViewer({ clauses = [] }) {
-  const [activeId, setActiveId] = useState(clauses?.[0]?.id ?? null);
-  const active = clauses.find((c) => c.id === activeId) ?? clauses[0] ?? null;
+export default function ContractViewer({
+  clauses = [],
+  activeClauseId,
+  onSelectClause,
+}) {
+  const [localActiveId, setLocalActiveId] = useState(
+    clauses[0]?.id ?? null
+  );
+
+  const isControlled = activeClauseId !== undefined;
+
+  const selectedId = isControlled
+    ? activeClauseId
+    : localActiveId;
+
+  useEffect(() => {
+    if (!clauses.length) {
+      setLocalActiveId(null);
+      return;
+    }
+
+    const selectionExists = clauses.some(
+      (clause) => clause.id === selectedId
+    );
+
+    if (!selectionExists) {
+      const firstId = clauses[0].id;
+      setLocalActiveId(firstId);
+      onSelectClause?.(firstId);
+    }
+  }, [clauses, selectedId, onSelectClause]);
+
+  const active =
+    clauses.find((clause) => clause.id === selectedId) ??
+    clauses[0] ??
+    null;
+
+  function selectClause(id) {
+    setLocalActiveId(id);
+    onSelectClause?.(id);
+  }
+
   if (!clauses.length) {
     return (
       <div className="viewer-empty">
@@ -16,19 +56,32 @@ export default function ContractViewer({ clauses = [] }) {
   return (
     <div className="viewer">
       <aside className="viewer-list">
-        <span className="eyebrow-mono">CLAUSES ({clauses.length})</span>
+        <span className="eyebrow-mono">
+          CLAUSES ({clauses.length})
+        </span>
+
         <ul>
-          {clauses.map((clause) => (
-            <li key={clause.id}>
+          {clauses.map((clause, index) => (
+            <li key={clause.id ?? index}>
               <button
+                type="button"
                 className={`viewer-list-item ${
-                  active?.id === clause.id ? "viewer-list-item--active" : ""
+                  active?.id === clause.id
+                    ? "viewer-list-item--active"
+                    : ""
                 }`}
-                onClick={() => setActiveId(clause.id)}
+                onClick={() => selectClause(clause.id)}
               >
-                <span className="viewer-list-title">{clause.title}</span>
+                <span className="viewer-list-title">
+                  {clause.title || `Clause ${index + 1}`}
+                </span>
+
                 {clause.riskLevel && (
-                  <span className={`viewer-tag viewer-tag--${clause.riskLevel}`}>
+                  <span
+                    className={`viewer-tag viewer-tag--${String(
+                      clause.riskLevel
+                    ).toLowerCase()}`}
+                  >
                     {clause.riskLevel}
                   </span>
                 )}
@@ -41,9 +94,17 @@ export default function ContractViewer({ clauses = [] }) {
       <div className="viewer-detail">
         {active && (
           <>
-            <span className="eyebrow-mono">{active.section ?? "CLAUSE"}</span>
-            <h3 className="viewer-detail-title">{active.title}</h3>
-            <p className="viewer-detail-summary">{active.summary}</p>
+            <span className="eyebrow-mono">
+              {active.section || "CLAUSE"}
+            </span>
+
+            <h3 className="viewer-detail-title">
+              {active.title || "Untitled clause"}
+            </h3>
+
+            <p className="viewer-detail-summary">
+              {active.summary || "No summary available for this clause."}
+            </p>
 
             {active.sourceText && (
               <blockquote className="viewer-source">
