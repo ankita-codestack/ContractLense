@@ -1,4 +1,6 @@
+
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import "./QAPanel.css";
 
 export default function QAPanel({ onAsk, history = [], loading = false }) {
@@ -14,7 +16,9 @@ export default function QAPanel({ onAsk, history = [], loading = false }) {
 
   return (
     <div className="qa-panel">
-      <p className="eyebrow-mono qa-panel-label">Ask about this contract</p>
+      <p className="eyebrow-mono qa-panel-label">
+        Ask about this contract
+      </p>
 
       <div className="qa-history">
         {history.length === 0 && !loading && (
@@ -30,11 +34,31 @@ export default function QAPanel({ onAsk, history = [], loading = false }) {
               <span className="qa-role eyebrow-mono">You</span>
               <p>{entry.question}</p>
             </div>
+
             <div className="qa-answer">
               <span className="qa-role eyebrow-mono">ContractLens</span>
-              <p>{entry.answer}</p>
+
+              <div className="qa-answer-content">
+                <ReactMarkdown
+                  components={{
+                    h1: ({ children }) => <h3>{children}</h3>,
+                    h2: ({ children }) => <h3>{children}</h3>,
+                    h3: ({ children }) => <h4>{children}</h4>,
+                    p: ({ children }) => <p>{children}</p>,
+                    ul: ({ children }) => <ul>{children}</ul>,
+                    ol: ({ children }) => <ol>{children}</ol>,
+                    li: ({ children }) => <li>{children}</li>,
+                    strong: ({ children }) => <strong>{children}</strong>,
+                  }}
+                >
+                  {entry.answer || ""}
+                </ReactMarkdown>
+              </div>
+
               {entry.clauseRef && (
-                <p className="qa-ref">Source: {entry.clauseRef}</p>
+                <p className="qa-ref">
+                  Source: {entry.clauseRef}
+                </p>
               )}
             </div>
           </div>
@@ -56,6 +80,7 @@ export default function QAPanel({ onAsk, history = [], loading = false }) {
           placeholder="Type your question…"
           disabled={loading}
         />
+
         <button type="submit" disabled={loading || !question.trim()}>
           Ask
         </button>

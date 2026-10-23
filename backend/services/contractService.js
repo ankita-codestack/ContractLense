@@ -1,4 +1,3 @@
-
 const fs = require("fs");
 const { PDFParse } = require("pdf-parse");
 const Groq = require("groq-sdk");
@@ -326,6 +325,93 @@ Allowed levels: high, review, standard.`,
   return parsed.risks;
 }
 
+
+async function checkConsistency(clauses, financialTerms, timeline) {
+  const response = await groq.chat.completions.create({
+    model: "openai/gpt-oss-20b",
+    temperature: 0,
+    max_completion_tokens: 2500,
+    response_format: {
+      type: "json_object",
+    },
+    messages: [
+      {
+        role: "system",
+        content: `You are ContractLens Consistency Checker, the third-stage contract analysis agent.
+
+Find explicit contradictions within the supplied contract evidence.
+
+Check for:
+- Conflicting dates or deadlines for the same event.
+- Inconsistent payment amounts or totals.
+- Contradictory obligations between clauses.
+- Conflicting terms about termination, renewal, or completion.
+
+Rules:
+- Do not treat different dates as contradictions unless they refer to the same event or deadline.
+- Do not assume that missing information is a contradiction.
+- Do not invent facts or issues.
+- Use evidence from the supplied data only.
+- If there are no clearly supported contradictions, return an empty array.
+- Keep descriptions concise.
+
+Return valid JSON only, using this structure:
+{
+  "issues": [
+    {
+      "title": "Short issue title",
+      "description": "Explain the contradiction",
+      "severity": "high",
+      "evidence": ["Relevant clause or term 1", "Relevant clause or term 2"]
+    }
+  ]
+}
+
+Allowed severity values: high, review, low.`,
+      },
+      {
+        role: "user",
+        content: JSON.stringify({
+          clauses: clauses.map((clause) => ({
+            title: clause.title,
+            section: clause.section,
+            sourceText: clause.sourceText,
+          })),
+          financialTerms,
+          timeline,
+        }),
+      },
+    ],
+  });
+
+  const choice = response.choices?.[0];
+  const content = choice?.message?.content;
+
+  if (!content || choice?.finish_reason === "length") {
+    throw new Error("Consistency Checker returned an incomplete response.");
+  }
+
+  const parsed = parseJson(content, "consistency check");
+
+  if (
+    !Array.isArray(parsed.issues) ||
+    !parsed.issues.every(
+      (issue) =>
+        issue &&
+        typeof issue.title === "string" &&
+        typeof issue.description === "string" &&
+        ["high", "review", "low"].includes(issue.severity) &&
+        Array.isArray(issue.evidence) &&
+        issue.evidence.every((item) => typeof item === "string")
+    )
+  ) {
+    throw new Error("Consistency Checker returned an invalid response.");
+  }
+
+  return parsed.issues;
+}
+
+
 async function analyzeContract(file) {
   let parser;
 
@@ -449,6 +535,24 @@ async function analyzeContract(file) {
         error.message
       );
     }
+    
+    let consistencyIssues = [];
+    try {
+      consistencyIssues = await checkConsistency(
+        clauses,
+        financialTerms,
+        timeline
+      );
+
+      console.log 
+        `LLM 3 consistency check completed. Issues found: ${consistencyIssues.length}`
+    } catch (error){
+      console.error(
+        "LLM 3 consistency check failed:",
+        error.message
+      );
+    }
+
 
     const risks = uniqueBy(
       verifiedRisks,
@@ -515,6 +619,7 @@ async function analyzeContract(file) {
       clauses,
       risks,
       timeline,
+      consistencyIssues,
       qaSeed,
     };
   } catch (error) {
