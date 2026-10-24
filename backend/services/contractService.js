@@ -1,3 +1,4 @@
+
 const fs = require("fs");
 const { PDFParse } = require("pdf-parse");
 const Groq = require("groq-sdk");
@@ -42,9 +43,9 @@ function uniqueBy(items, getKey) {
   });
 }
 
-function parseJson(content, chunkNumber) {
+function parseJson(content, label) {
   if (!content || !content.trim()) {
-    throw new Error(`Empty AI response for chunk ${chunkNumber}`);
+    throw new Error(`Empty AI response: ${label}`);
   }
 
   const cleaned = content
@@ -55,13 +56,59 @@ function parseJson(content, chunkNumber) {
   const parsed = JSON.parse(cleaned);
 
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error(`Invalid JSON object in chunk ${chunkNumber}`);
+    throw new Error(`Invalid JSON object: ${label}`);
   }
 
   return parsed;
 }
 
-const schema = {
+/*
+ * Shared helper for LLM 2 and LLM 3.
+ * Try JSON Schema first; if the API rejects that request,
+ * retry once using JSON-object mode.
+ */
+async function createAgentCompletion({
+  maxCompletionTokens,
+  schemaName,
+  schema,
+  messages,
+}) {
+  try {
+    return await groq.chat.completions.create({
+      model: "openai/gpt-oss-20b",
+      temperature: 0,
+      reasoning_effort: "low",
+      max_completion_tokens: maxCompletionTokens,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: schemaName,
+          strict: true,
+          schema,
+        },
+      },
+      messages,
+    });
+  } catch (schemaError) {
+    console.error(
+      `${schemaName}: JSON Schema request failed; retrying with JSON-object mode:`,
+      schemaError.message
+    );
+
+    return await groq.chat.completions.create({
+      model: "openai/gpt-oss-20b",
+      temperature: 0,
+      max_completion_tokens: maxCompletionTokens,
+      response_format: {
+        type: "json_object",
+      },
+      messages,
+    });
+  }
+}
+
+/* LLM 1: Contract extraction schema */
+const extractionSchema = {
   type: "object",
   properties: {
     title: { type: "string" },
@@ -189,25 +236,25 @@ const schema = {
   additionalProperties: false,
 };
 
+/* LLM 1: Extract contract data */
 async function extractChunk(chunk, index, total) {
-  try {
-    const response = await groq.chat.completions.create({
-      model: "openai/gpt-oss-20b",
-      temperature: 0,
-      reasoning_effort: "low",
-      max_completion_tokens: 6000,
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "contract_extraction",
-          strict: true,
-          schema,
-        },
+  const response = await groq.chat.completions.create({
+    model: "openai/gpt-oss-20b",
+    temperature: 0,
+    reasoning_effort: "low",
+    max_completion_tokens: 6000,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "contract_extraction",
+        strict: true,
+        schema: extractionSchema,
       },
-      messages: [
-        {
-          role: "system",
-          content: `You are a contract analysis extraction system.
+    },
+    messages: [
+      {
+        role: "system",
+        content: `You are a contract analysis extraction system.
 
 Extract information only from the supplied contract text.
 Never invent parties, dates, clauses, obligations, or risks.
@@ -219,41 +266,35 @@ Flag risks only when supported by the contract.
 Use empty arrays when information is absent.
 For timeline events, use type "other" if none of the allowed types fit.
 Return data matching the required JSON schema.`,
-        },
-        {
-          role: "user",
-          content: `Analyze contract chunk ${index + 1} of ${total}.
+      },
+      {
+        role: "user",
+        content: `Analyze contract chunk ${index + 1} of ${total}.
 
 CONTRACT TEXT:
 ${chunk}`,
-        },
-      ],
-    });
+      },
+    ],
+  });
 
-    const choice = response.choices?.[0];
-    const content = choice?.message?.content;
+  const choice = response.choices?.[0];
+  const content = choice?.message?.content;
 
-    if (choice?.finish_reason === "length") {
-      throw new Error("AI response reached its token limit.");
-    }
-
-    if (!content || !content.trim()) {
-      throw new Error("Groq returned an empty response.");
-    }
-
-    return parseJson(content, index + 1);
-  } catch (error) {
-    console.error(
-      `Extraction failed for chunk ${index + 1}/${total}:`,
-      error.message
-    );
-
+  if (!content || choice?.finish_reason === "length") {
     throw new Error(
-      `AI extraction failed on chunk ${index + 1}: ${error.message}`
+      `Extraction returned an incomplete response for chunk ${index + 1}.`
     );
+  }
+
+  try {
+    return parseJson(content, `extraction chunk ${index + 1}`);
+  } catch (error) {
+    console.error("Extraction JSON parsing failed:", error.message);
+    throw error;
   }
 }
 
+/* LLM 2: Risk verification */
 async function verifyRisks(clauses, existingRisks) {
   const relevantClauses = clauses.map((clause) => ({
     title: clause.title,
@@ -263,18 +304,39 @@ async function verifyRisks(clauses, existingRisks) {
   }));
 
   const compactRisks = existingRisks.map((risk) => ({
-    clauseTitle: risk.clauseTitle,
-    reason: risk.reason,
-    level: risk.level,
+    clauseTitle: risk.clauseTitle || "",
+    reason: risk.reason || "",
+    level: risk.level || "review",
   }));
 
-  const response = await groq.chat.completions.create({
-    model: "openai/gpt-oss-20b",
-    temperature: 0,
-    max_completion_tokens: 2000,
-    response_format: {
-      type: "json_object",
+  const riskSchema = {
+    type: "object",
+    properties: {
+      risks: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            clauseTitle: { type: "string" },
+            reason: { type: "string" },
+            level: {
+              type: "string",
+              enum: ["high", "review", "standard"],
+            },
+          },
+          required: ["clauseTitle", "reason", "level"],
+          additionalProperties: false,
+        },
+      },
     },
+    required: ["risks"],
+    additionalProperties: false,
+  };
+
+  const response = await createAgentCompletion({
+    maxCompletionTokens: 3000,
+    schemaName: "risk_verification",
+    schema: riskSchema,
     messages: [
       {
         role: "system",
@@ -284,13 +346,13 @@ Verify existing risks against the supplied clause evidence.
 Correct inaccurate reasons and severity levels.
 When possible, use the exact title of the matching supplied clause in clauseTitle.
 Do not invent facts.
-Keep supported risks. Remove a risk only if it is clearly unsupported.
+Keep supported risks.
+Remove a risk only if it is clearly unsupported.
 If evidence is insufficient, retain the risk with level "review".
 Do not add risks without supporting evidence.
 
-Return valid JSON only:
-{"risks":[{"clauseTitle":"string","reason":"string","level":"high"}]}
-
+Return a JSON object with a risks array.
+Each risk must contain clauseTitle, reason and level.
 Allowed levels: high, review, standard.`,
       },
       {
@@ -328,81 +390,64 @@ Allowed levels: high, review, standard.`,
   return parsed.risks;
 }
 
-
+/* LLM 3: Contract consistency checking */
 async function checkConsistency(clauses, financialTerms, timeline) {
-  const response = await groq.chat.completions.create({
-    model: "openai/gpt-oss-20b",
-    temperature: 0,
-    max_completion_tokens: 2500,
-    
-response_format: {
-  type: "json_schema",
-  json_schema: {
-    name: "consistency_check",
-    strict: true,
-    schema: {
-      type: "object",
-      properties: {
-        issues: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              title: { type: "string" },
-              description: { type: "string" },
-              severity: {
-                type: "string",
-                enum: ["high", "review", "low"],
-              },
-              evidence: {
-                type: "array",
-                items: { type: "string" },
-              },
+  const consistencySchema = {
+    type: "object",
+    properties: {
+      issues: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            description: { type: "string" },
+            severity: {
+              type: "string",
+              enum: ["high", "review", "low"],
             },
-            required: [
-              "title",
-              "description",
-              "severity",
-              "evidence",
-            ],
-            additionalProperties: false,
+            evidence: {
+              type: "array",
+              items: { type: "string" },
+            },
           },
+          required: ["title", "description", "severity", "evidence"],
+          additionalProperties: false,
         },
       },
-      required: ["issues"],
-      additionalProperties: false,
     },
-  },
-},
+    required: ["issues"],
+    additionalProperties: false,
+  };
 
+  const response = await createAgentCompletion({
+    maxCompletionTokens: 3000,
+    schemaName: "consistency_check",
+    schema: consistencySchema,
     messages: [
       {
         role: "system",
         content: `You are ContractLens Consistency Checker.
 
-Analyze only the supplied contract evidence and identify explicit contradictions.
+Identify explicit contradictions using only the supplied contract evidence.
 
-Check for:
+Check:
 - Conflicting dates or deadlines for the same event.
 - Inconsistent payment amounts or totals.
 - Contradictory obligations between clauses.
-- Conflicting termination, renewal, or completion terms.
+- Conflicting termination, renewal or completion terms.
 
 Rules:
 - Different dates are not contradictions unless they refer to the same event.
 - Missing information is not a contradiction.
 - Never invent facts or issues.
 - Use only the supplied evidence.
-- If no clear contradiction exists, return an empty issues array.
+- If no clear contradiction exists, return {"issues":[]}.
 - Keep descriptions concise.
-- Severity must be exactly high, review, or low.
+- Severity must be high, review or low.
 
-You MUST return a valid JSON object and nothing else.
-The JSON object must have this exact structure:
-{"issues":[{"title":"Short title","description":"Contradiction explained","severity":"high","evidence":["Evidence 1","Evidence 2"]}]}
-
-If there are no contradictions, return exactly:
-{"issues":[]}`,
+Return a JSON object containing an issues array.
+Each issue must contain title, description, severity and evidence.`,
       },
       {
         role: "user",
@@ -426,17 +471,9 @@ If there are no contradictions, return exactly:
     throw new Error("Consistency Checker returned an incomplete response.");
   }
 
-  let parsed;
-
-  try {
-    parsed = parseJson(content, "consistency check");
-  } catch (error) {
-    console.error("Consistency Checker raw response:", content);
-    throw error;
-  }
+  const parsed = parseJson(content, "consistency check");
 
   if (
-    !parsed ||
     !Array.isArray(parsed.issues) ||
     !parsed.issues.every(
       (issue) =>
@@ -448,14 +485,13 @@ If there are no contradictions, return exactly:
         issue.evidence.every((item) => typeof item === "string")
     )
   ) {
-    console.error("Consistency Checker returned invalid JSON structure:", parsed);
     throw new Error("Consistency Checker returned an invalid response.");
   }
 
   return parsed.issues;
 }
 
-
+/* Main contract analysis pipeline */
 async function analyzeContract(file) {
   let parser;
 
@@ -507,12 +543,7 @@ async function analyzeContract(file) {
     for (let i = 0; i < chunks.length; i++) {
       console.log(`Processing chunk ${i + 1}/${chunks.length}`);
 
-      const extracted = await extractChunk(
-        chunks[i],
-        i,
-        chunks.length
-      );
-
+      const extracted = await extractChunk(chunks[i], i, chunks.length);
       extractedResults.push(extracted);
     }
 
@@ -543,11 +574,9 @@ async function analyzeContract(file) {
     const clauses = uniqueBy(
       extractedResults.flatMap((item) => item.clauses || []),
       (item) => {
-        const section = String(item.section || "")
-          .trim()
-          .toLowerCase();
-        const title = (item.title || "").trim().toLowerCase();
-        const source = (item.sourceText || "").trim().toLowerCase();
+        const section = String(item.section || "").trim().toLowerCase();
+        const title = String(item.title || "").trim().toLowerCase();
+        const source = String(item.sourceText || "").trim().toLowerCase();
 
         return section || title ? `${section}|${title}` : source;
       }
@@ -577,8 +606,9 @@ async function analyzeContract(file) {
       console.log("LLM 2 risk verification completed.");
     } catch (error) {
       console.error(
-        "LLM 2 risk verification failed; using original risks:",
-        error.message
+        "LLM 2 risk verification failed; using original extracted risks:",
+        error.message,
+        error.status ? `HTTP ${error.status}` : ""
       );
     }
 
@@ -605,7 +635,8 @@ async function analyzeContract(file) {
     } catch (error) {
       console.error(
         "LLM 3 consistency check failed:",
-        error.message
+        error.message,
+        error.status ? `HTTP ${error.status}` : ""
       );
     }
 

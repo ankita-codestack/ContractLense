@@ -5,30 +5,32 @@
 ------------------------------------------------------------------- */
 
 :root {
-  --ivory: #f4f0e6;
-  --ivory-deep: #ebe4d3;
-  --paper: #fbf9f3;
+  --ivory: #CDD5DB;
+  --ivory-deep: #A4B5C4;
+  --paper: #E8E9E7;
 
-  --ink: #17181b;
-  --ink-soft: #45484e;
-  --ink-faint: #7c7f86;
+  --ink: #071739;
+  --ink-soft: #4B6382;
+  --ink-faint: #4B6382;
 
-  --navy: #1c2740;
-  --navy-soft: #2c3a5c;
+  --navy: #071739;
+  --navy-soft: #4B6382;
 
-  --burgundy: #7a2e2e;
-  --burgundy-tint: #f2e3e0;
-  --amber: #96661f;
-  --amber-tint: #f2e7d3;
-  --teal: #2e5c50;
-  --teal-tint: #dde9e4;
+  --burgundy: #071739;
+  --burgundy-tint: #CDD5DB;
+  --amber: #A68868;
+  --amber-tint: #E3C39D;
+  --teal: #4B6382;
+  --teal-tint: #A4B5C4;
 
-  --border: rgba(23, 24, 27, 0.16);
-  --border-strong: rgba(23, 24, 27, 0.34);
-  --border-hairline: rgba(23, 24, 27, 0.09);
+  --border: rgba(7, 23, 57, 0.16);
+  --border-strong: rgba(7, 23, 57, 0.34);
+  --border-hairline: rgba(7, 23, 57, 0.09);
 
-  --shadow-raised: 0 1px 0 rgba(23, 24, 27, 0.05), 0 10px 24px -12px rgba(23, 24, 27, 0.28);
-  --shadow-deep: 0 2px 0 rgba(23, 24, 27, 0.06), 0 24px 48px -20px rgba(23, 24, 27, 0.38);
+  --shadow-raised: 0 1px 0 rgba(7, 23, 57, 0.05),
+    0 10px 24px -12px rgba(7, 23, 57, 0.20);
+  --shadow-deep: 0 2px 0 rgba(7, 23, 57, 0.06),
+    0 24px 48px -20px rgba(7, 23, 57, 0.30);
 
   --font-display: "Fraunces", "Iowan Old Style", serif;
   --font-body: "Public Sans", -apple-system, "Segoe UI", sans-serif;

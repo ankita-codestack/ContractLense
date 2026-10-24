@@ -1,24 +1,30 @@
+
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Navbar from "./components/Navbar.jsx";
-import Hero from "./components/Hero.jsx";
-import UploadWorkspace from "./components/UploadWorkspace.jsx";
-import AnalysisFlow from "./components/AnalysisFlow.jsx";
 import Dashboard from "./components/Dashboard.jsx";
-import Footer from "./components/Footer.jsx";
 import { contract as mockContract } from "./data/mockContract.js";
 import "./App.css";
 
-// view: "landing" | "upload" | "analyzing" | "dashboard"
-
 export default function App() {
-  const [view, setView] = useState("landing");
+  const [contractData, setContractData] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [fileName, setFileName] = useState("");
-  const [contractData, setContractData] = useState(mockContract);
+  const [analysisError, setAnalysisError] = useState("");
 
   async function handleFileReady(file) {
+    if (!file || file.type !== "application/pdf") {
+      setAnalysisError("Please select a valid PDF file.");
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      setAnalysisError("The PDF must be smaller than 25 MB.");
+      return;
+    }
+
     setFileName(file.name);
-    setView("analyzing");
+    setAnalysisError("");
+    setIsAnalyzing(true);
 
     try {
       const formData = new FormData();
@@ -32,86 +38,46 @@ export default function App() {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`Backend error: ${response.status}`);
-      }
-
       const data = await response.json();
 
-      console.log("Backend response:", data);
-
-      if (data.success) {
-        setContractData(data);
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message || `Analysis failed (${response.status}).`
+        );
       }
+
+      setContractData({
+        ...data,
+        fileName: data.fileName || file.name,
+      });
     } catch (error) {
-      console.error("Upload failed:", error);
+      console.error("Contract analysis failed:", error);
+      setAnalysisError(
+        error.message || "Unable to analyze the contract. Please try again."
+      );
+    } finally {
+      setIsAnalyzing(false);
     }
   }
 
   return (
     <div className="app">
-      {view !== "dashboard" && (
-  <Navbar
-    onHome={() => setView("landing")}
-    onAnalyze={() => setView("upload")}
-  />
-)}
-
       <AnimatePresence mode="wait">
-        {view === "landing" && (
-          <motion.div
-            key="landing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <Hero
-              onAnalyze={() => setView("upload")}
-              onHowItWorks={() => setView("upload")}
-            />
-            <Footer />
-          </motion.div>
-        )}
-
-        {view === "upload" && (
-          <motion.div
-            key="upload"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <UploadWorkspace onFileReady={handleFileReady} />
-          </motion.div>
-        )}
-
-        {view === "analyzing" && (
-          <motion.div
-            key="analyzing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <AnalysisFlow
-              fileName={fileName}
-              onComplete={() => setView("dashboard")}
-            />
-          </motion.div>
-        )}
-
-        {view === "dashboard" && (
-          <motion.div
-            key="dashboard"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <Dashboard contract={contractData} />
-          </motion.div>
-        )}
+        <motion.div
+          key="dashboard"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <Dashboard
+            contract={contractData}
+            onFileReady={handleFileReady}
+            isAnalyzing={isAnalyzing}
+            fileName={fileName}
+            analysisError={analysisError}
+          />
+        </motion.div>
       </AnimatePresence>
     </div>
   );
