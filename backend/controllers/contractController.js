@@ -12,11 +12,11 @@ async function analyze(req, res) {
     }
 
     const result = await analyzeContract(req.file);
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     console.error("Contract analysis error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to analyze contract",
     });
@@ -25,9 +25,14 @@ async function analyze(req, res) {
 
 async function askQuestion(req, res) {
   try {
-    const { contractText, question } = req.body;
+    const { contractText, question } = req.body || {};
 
-    if (!contractText || !question) {
+    if (
+      typeof contractText !== "string" ||
+      !contractText.trim() ||
+      typeof question !== "string" ||
+      !question.trim()
+    ) {
       return res.status(400).json({
         success: false,
         message: "Contract text and question are required.",
@@ -38,24 +43,31 @@ async function askQuestion(req, res) {
     res.setHeader("Cache-Control", "no-cache, no-transform");
     res.setHeader("X-Accel-Buffering", "no");
 
-    await answerContractQuestion(contractText, question, (chunk) => {
-  console.log("BACKEND CHUNK:", chunk);
-  if (!res.destroyed) {
-    res.write(chunk);
-  }
-});
+    await answerContractQuestion(
+      contractText,
+      question,
+      (chunk) => {
+        if (!res.destroyed && !res.writableEnded) {
+          res.write(chunk);
+        }
+      }
+    );
 
-    res.end();
-  } catch (error) {
-    console.error("Contract Q&A error:", error.message);
-
-    if (res.headersSent) {
+    if (!res.destroyed && !res.writableEnded) {
       res.end();
-    } else {
-      res.status(500).json({
+    }
+  } catch (error) {
+    console.error("Contract Q&A error:", error);
+
+    if (!res.headersSent) {
+      return res.status(500).json({
         success: false,
         message: "Failed to answer the contract question.",
       });
+    }
+
+    if (!res.destroyed && !res.writableEnded) {
+      res.end();
     }
   }
 }
