@@ -7,6 +7,10 @@ import Timeline from "./Timeline.jsx";
 import QAPanel from "./QAPanel.jsx";
 import "./Dashboard.css";
 
+const API_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
+
 const SECTION_IDS = [
   "overview",
   "contract-summary",
@@ -88,19 +92,16 @@ export default function Dashboard({
     ]);
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/contracts/qa",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contractText: contract.text.slice(0, 24000),
-            question: currentQuestion,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/contracts/qa`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contractText: contract.text.slice(0, 24000),
+          question: currentQuestion,
+        }),
+      });
 
       if (!response.ok || !response.body) {
         let message = "Failed to answer question.";
@@ -404,41 +405,57 @@ export default function Dashboard({
                 </div>
               </section>
 
-              <section className="dashboard-stat-grid" aria-label="Contract metrics">
+              <section
+                className="dashboard-stat-grid"
+                aria-label="Contract metrics"
+              >
                 <article className="dashboard-stat-card">
                   <span className="stat-icon stat-icon--blue">▤</span>
                   <p>Total clauses</p>
                   <strong>{clauses.length}</strong>
-                  <span className="stat-footnote">Extracted from document</span>
+                  <span className="stat-footnote">
+                    Extracted from document
+                  </span>
                 </article>
 
                 <article className="dashboard-stat-card">
                   <span className="stat-icon stat-icon--red">◇</span>
                   <p>High risks</p>
                   <strong>{highRisks}</strong>
-                  <span className="stat-footnote">Require close attention</span>
+                  <span className="stat-footnote">
+                    Require close attention
+                  </span>
                 </article>
 
                 <article className="dashboard-stat-card">
                   <span className="stat-icon stat-icon--sand">◎</span>
                   <p>Needs review</p>
                   <strong>{reviewRisks}</strong>
-                  <span className="stat-footnote">Clauses to examine</span>
+                  <span className="stat-footnote">
+                    Clauses to examine
+                  </span>
                 </article>
 
                 <article className="dashboard-stat-card">
                   <span className="stat-icon stat-icon--teal">◷</span>
                   <p>Key dates</p>
                   <strong>{timelineEvents.length}</strong>
-                  <span className="stat-footnote">Deadlines and milestones</span>
+                  <span className="stat-footnote">
+                    Deadlines and milestones
+                  </span>
                 </article>
               </section>
 
-              <section className="dashboard-content-grid" id="contract-summary">
+              <section
+                className="dashboard-content-grid"
+                id="contract-summary"
+              >
                 <article className="dashboard-panel dashboard-summary-panel">
                   <div className="dashboard-panel-heading">
                     <div>
-                      <p className="dashboard-overline">DOCUMENT BREAKDOWN</p>
+                      <p className="dashboard-overline">
+                        DOCUMENT BREAKDOWN
+                      </p>
                       <h2>Contract summary</h2>
                     </div>
                     <span className="panel-number">01</span>
@@ -497,7 +514,9 @@ export default function Dashboard({
                 >
                   <div className="dashboard-panel-heading">
                     <div>
-                      <p className="dashboard-overline">REVIEW PRIORITIES</p>
+                      <p className="dashboard-overline">
+                        REVIEW PRIORITIES
+                      </p>
                       <h2>Risk analysis</h2>
                     </div>
                     <span className="panel-number">02</span>
@@ -553,7 +572,9 @@ export default function Dashboard({
                 >
                   <div className="dashboard-panel-heading">
                     <div>
-                      <p className="dashboard-overline">IMPORTANT PROVISIONS</p>
+                      <p className="dashboard-overline">
+                        IMPORTANT PROVISIONS
+                      </p>
                       <h2>Key clauses</h2>
                     </div>
                     <span className="panel-number">03</span>
@@ -594,7 +615,9 @@ export default function Dashboard({
                 >
                   <div className="dashboard-panel-heading">
                     <div>
-                      <p className="dashboard-overline">DEADLINES & MILESTONES</p>
+                      <p className="dashboard-overline">
+                        DEADLINES & MILESTONES
+                      </p>
                       <h2>Contract timeline</h2>
                     </div>
                     <span className="panel-number">04</span>
