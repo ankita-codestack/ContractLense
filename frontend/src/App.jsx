@@ -2,8 +2,11 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Dashboard from "./components/Dashboard.jsx";
-import { contract as mockContract } from "./data/mockContract.js";
 import "./App.css";
+
+const API_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000"
+).replace(/\/$/, "");
 
 export default function App() {
   const [contractData, setContractData] = useState(null);
@@ -25,18 +28,16 @@ export default function App() {
     setFileName(file.name);
     setAnalysisError("");
     setIsAnalyzing(true);
+    setContractData(null);
 
     try {
       const formData = new FormData();
       formData.append("contract", file);
 
-      const response = await fetch(
-        "http://localhost:5000/api/contracts/analyze",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch(`${API_URL}/api/contracts/analyze`, {
+        method: "POST",
+        body: formData,
+      });
 
       const data = await response.json();
 
