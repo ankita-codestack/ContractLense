@@ -27,7 +27,9 @@
   box-sizing: border-box;
 }
 
-/* Sidebar */
+/* =========================================
+   SIDEBAR — BLUE/GOLD BACKGROUND
+   ========================================= */
 
 .dashboard-sidebar {
   position: sticky;
@@ -41,7 +43,13 @@
   padding: 27px 16px 18px;
   overflow-y: auto;
   color: #f5f2ed;
-  background: var(--dash-navy);
+
+  background:
+    linear-gradient(
+      rgba(7, 23, 57, 0.35),
+      rgba(7, 23, 57, 0.55)
+    ),
+    url("/workspace-bg.jpg") center / cover no-repeat;
 }
 
 .sidebar-brand {
@@ -89,7 +97,7 @@
 
 .sidebar-label {
   margin: 0 10px 13px;
-  color: #8190a7;
+  color: #a4b5c4;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -109,7 +117,7 @@
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #c5ced9;
+  color: #e1e7ef;
   background: transparent;
   text-align: left;
   font-size: 13px;
@@ -120,7 +128,7 @@
 .sidebar-link > span {
   width: 20px;
   flex-shrink: 0;
-  color: #a4b5c4;
+  color: #c1ccda;
   font-size: 18px;
   text-align: center;
 }
@@ -128,11 +136,11 @@
 .sidebar-link:hover,
 .sidebar-link--active {
   color: #fffefa;
-  background: #17294a;
+  background: rgba(23, 41, 74, 0.88);
 }
 
 .sidebar-link--active {
-  border-color: #34435e;
+  border-color: #53647e;
 }
 
 .sidebar-link--active > span {
@@ -144,9 +152,9 @@
   gap: 11px;
   margin-top: auto;
   padding: 15px 11px;
-  border: 1px solid #293955;
+  border: 1px solid rgba(164, 181, 196, 0.35);
   border-radius: 10px;
-  background: #101f3d;
+  background: rgba(7, 23, 57, 0.82);
 }
 
 .sidebar-help-mark {
@@ -155,7 +163,7 @@
   width: 25px;
   height: 25px;
   flex-shrink: 0;
-  border: 1px solid #62718a;
+  border: 1px solid #a4b5c4;
   border-radius: 50%;
   color: var(--dash-sand);
   font-size: 13px;
@@ -168,7 +176,7 @@
 
 .sidebar-bottom p {
   margin: 7px 0;
-  color: #aab6c6;
+  color: #d0d9e5;
   font-size: 10px;
   line-height: 1.6;
 }
@@ -184,17 +192,27 @@
 
 .sidebar-version {
   margin-top: 18px;
-  color: #7f8da2;
+  color: #a4b5c4;
   font-size: 8px;
   letter-spacing: 1px;
   text-align: center;
 }
 
-/* Main area */
+/* =========================================
+   MAIN AREA
+   ========================================= */
 
 .dashboard-main {
   flex: 1;
   min-width: 0;
+  min-height: 100vh;
+
+  background:
+    linear-gradient(
+      rgba(250, 248, 243, 0.72),
+      rgba(250, 248, 243, 0.78)
+    ),
+    url("/analysis-bg.jpg") center top / cover fixed no-repeat;
 }
 
 .dashboard-topbar {
@@ -208,7 +226,7 @@
   min-height: 70px;
   padding: 13px 30px;
   border-bottom: 1px solid var(--dash-border);
-  background: rgba(255, 254, 250, 0.96);
+  background: rgba(255, 254, 250, 0.92);
   backdrop-filter: blur(12px);
 }
 
@@ -280,7 +298,9 @@
   font-weight: 700;
 }
 
-/* Main content */
+/* =========================================
+   MAIN CONTENT
+   ========================================= */
 
 .dashboard-content {
   width: 100%;
@@ -347,7 +367,9 @@
   background: #718d80;
 }
 
-/* Document banner */
+/* =========================================
+   DOCUMENT BANNER
+   ========================================= */
 
 .dashboard-document-banner {
   position: relative;
@@ -360,7 +382,8 @@
   overflow: hidden;
   border: 1px solid #dfe1df;
   border-radius: 11px;
-  background: var(--dash-white);
+  background: rgba(255, 254, 250, 0.91);
+  backdrop-filter: blur(5px);
 }
 
 .dashboard-document-banner::after {
@@ -447,7 +470,9 @@
   font-size: 13px;
 }
 
-/* Statistics */
+/* =========================================
+   STATISTICS
+   ========================================= */
 
 .dashboard-stat-grid {
   display: grid;
@@ -461,7 +486,8 @@
   padding: 17px 18px 15px;
   border: 1px solid var(--dash-border);
   border-radius: 9px;
-  background: var(--dash-white);
+  background: rgba(255, 254, 250, 0.91);
+  backdrop-filter: blur(5px);
   transition: border-color 180ms ease, transform 180ms ease;
 }
 
@@ -521,7 +547,9 @@
   font-size: 9px;
 }
 
-/* Panel layouts */
+/* =========================================
+   PANEL LAYOUTS
+   ========================================= */
 
 .dashboard-content-grid {
   display: grid;
@@ -540,8 +568,9 @@
   padding: 21px;
   border: 1px solid var(--dash-border);
   border-radius: 10px;
-  background: var(--dash-white);
+  background: rgba(255, 254, 250, 0.91);
   box-shadow: 0 2px 7px rgba(7, 23, 57, 0.025);
+  backdrop-filter: blur(5px);
 }
 
 .dashboard-panel-heading {
@@ -584,7 +613,9 @@
   line-height: 1.6;
 }
 
-/* Contract parties */
+/* =========================================
+   CONTRACT PARTIES
+   ========================================= */
 
 .dashboard-parties {
   display: flex;
@@ -619,7 +650,9 @@
   font-weight: 600;
 }
 
-/* Financial terms */
+/* =========================================
+   FINANCIAL TERMS
+   ========================================= */
 
 .dashboard-terms {
   padding-top: 17px;
@@ -664,7 +697,9 @@
   font-weight: 650;
 }
 
-/* Extracted clauses */
+/* =========================================
+   EXTRACTED CLAUSES
+   ========================================= */
 
 .dashboard-clause-viewer {
   margin-top: 20px;
@@ -680,7 +715,9 @@
   line-height: 1.6;
 }
 
-/* Risk summary */
+/* =========================================
+   RISK SUMMARY
+   ========================================= */
 
 .dashboard-risk-panel {
   min-width: 0;
@@ -788,7 +825,9 @@
   padding: 24px 8px;
 }
 
-/* Key clauses */
+/* =========================================
+   KEY CLAUSES
+   ========================================= */
 
 .key-clause-list {
   display: grid;
@@ -847,7 +886,9 @@
   font-size: 15px;
 }
 
-/* Timeline */
+/* =========================================
+   TIMELINE
+   ========================================= */
 
 .dashboard-timeline-panel .timeline {
   padding-top: 2px;
@@ -876,7 +917,9 @@
   font-size: 11px;
 }
 
-/* Q&A */
+/* =========================================
+   Q&A
+   ========================================= */
 
 .dashboard-qa-section {
   margin-bottom: 19px;
@@ -886,7 +929,151 @@
   margin-bottom: 13px;
 }
 
-/* Footer */
+.dashboard-content-grid--qa {
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.85fr);
+  align-items: start;
+}
+
+.dashboard-qa-spacer {
+  min-width: 0;
+}
+
+.dashboard-content-grid--qa .dashboard-qa-section {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 19px;
+}
+
+/* =========================================
+   UPLOAD SECTION
+   Keep this separate from the sidebar image
+   ========================================= */
+
+
+.dashboard-upload-section {
+  margin-bottom: 24px;
+  padding: 24px;
+  background: rgba(255, 254, 250, 0.52);
+  border: 1px solid rgba(228, 224, 216, 0.85);
+  border-radius: 8px;
+  backdrop-filter: blur(3px);
+}
+
+
+.dashboard-upload-section .upload {
+  max-width: 100%;
+  padding: 24px 0 8px;
+}
+
+.dashboard-upload-section .upload-head {
+  margin-bottom: 24px;
+}
+
+.dashboard-upload-section .upload-title {
+  font-size: 26px;
+}
+
+.dashboard-upload-section .dropzone {
+  padding: 36px 24px;
+}
+
+.dashboard-upload-section .flow {
+  max-width: 100%;
+  padding: 24px 0 8px;
+}
+
+.dashboard-upload-error {
+  margin: 16px 0;
+  padding: 12px 16px;
+  color: var(--burgundy);
+  background: var(--burgundy-tint);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+/* =========================================
+   FLOATING Q&A
+   ========================================= */
+
+.floating-qa {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.floating-qa-button {
+  border: 1px solid var(--border-strong);
+  border-radius: 28px;
+  padding: 14px 20px;
+  background: var(--navy);
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-raised);
+}
+
+.floating-qa-window {
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  height: 480px;
+  max-height: calc(100vh - 110px);
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-deep);
+}
+
+.floating-qa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--navy);
+  color: var(--paper);
+}
+
+.floating-qa-header p {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+
+.floating-qa-close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.floating-qa-window .qa-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.floating-qa-window .qa-history {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.floating-qa-window .qa-input-row {
+  flex-shrink: 0;
+}
+
+/* =========================================
+   FOOTER
+   ========================================= */
 
 .dashboard-footer {
   display: flex;
@@ -910,7 +1097,9 @@
   outline-offset: 3px;
 }
 
-/* Large displays */
+/* =========================================
+   RESPONSIVE — LARGE DISPLAYS
+   ========================================= */
 
 @media (min-width: 1500px) {
   .dashboard-content {
@@ -923,7 +1112,9 @@
   }
 }
 
-/* Medium screens */
+/* =========================================
+   RESPONSIVE — MEDIUM SCREENS
+   ========================================= */
 
 @media (max-width: 1150px) {
   .dashboard-sidebar {
@@ -952,9 +1143,27 @@
   }
 }
 
-/* Tablets */
+/* =========================================
+   RESPONSIVE — TABLETS
+   ========================================= */
 
 @media (max-width: 800px) {
+ 
+.dashboard-main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+
+  background:
+    linear-gradient(
+      rgba(250, 248, 243, 0.48),
+      rgba(250, 248, 243, 0.56)
+    ),
+    url("/analysis-bg.jpg") center top / cover fixed no-repeat;
+}
+
+
   .dashboard-sidebar {
     width: 66px;
     min-width: 66px;
@@ -1018,7 +1227,9 @@
   }
 }
 
-/* Mobile */
+/* =========================================
+   RESPONSIVE — MOBILE
+   ========================================= */
 
 @media (max-width: 560px) {
   .dashboard-sidebar {
@@ -1131,149 +1342,7 @@
   }
 }
 
-/* Reduced motion accessibility */
-
-@media (prefers-reduced-motion: reduce) {
-  .dashboard-shell *,
-  .dashboard-shell *::before,
-  .dashboard-shell *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-  }
-}
-/* Q&A assistant positioned in the right column */
-
-.dashboard-content-grid--qa {
-  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.85fr);
-  align-items: start;
-}
-
-.dashboard-qa-spacer {
-  min-width: 0;
-}
-
-.dashboard-content-grid--qa .dashboard-qa-section {
-  width: 100%;
-  min-width: 0;
-  margin-bottom: 19px;
-}
-
-/* Contract upload section inside dashboard */
-.dashboard-upload-section {
-  margin-bottom: 24px;
-  padding: 24px;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.dashboard-upload-section .upload {
-  max-width: 100%;
-  padding: 24px 0 8px;
-}
-
-.dashboard-upload-section .upload-head {
-  margin-bottom: 24px;
-}
-
-.dashboard-upload-section .upload-title {
-  font-size: 26px;
-}
-
-.dashboard-upload-section .dropzone {
-  padding: 36px 24px;
-}
-
-.dashboard-upload-section .flow {
-  max-width: 100%;
-  padding: 24px 0 8px;
-}
-
-.dashboard-upload-error {
-  margin: 16px 0;
-  padding: 12px 16px;
-  color: var(--burgundy);
-  background: var(--burgundy-tint);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-}
-
-.floating-qa {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-}
-
-.floating-qa-button {
-  border: 1px solid var(--border-strong);
-  border-radius: 28px;
-  padding: 14px 20px;
-  background: var(--navy);
-  color: var(--paper);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--shadow-raised);
-}
-
-.floating-qa-window {
-  display: flex;
-  flex-direction: column;
-  width: 360px;
-  height: 480px;
-  max-height: calc(100vh - 110px);
-  overflow: hidden;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-deep);
-}
-
-.floating-qa-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  background: var(--navy);
-  color: var(--paper);
-}
-
-.floating-qa-header p {
-  margin: 4px 0 0;
-  font-size: 12px;
-}
-
-.floating-qa-close {
-  border: none;
-  background: transparent;
-  color: inherit;
-  font-size: 26px;
-  cursor: pointer;
-}
-
-.floating-qa-window .qa-panel {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.floating-qa-window .qa-history {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.floating-qa-window .qa-input-row {
-  flex-shrink: 0;
-}
+/* Floating Q&A responsive */
 
 @media (max-width: 480px) {
   .floating-qa {
@@ -1285,4 +1354,44 @@
     width: calc(100vw - 24px);
     height: min(480px, calc(100vh - 100px));
   }
+}
+
+/* =========================================
+   REDUCED MOTION ACCESSIBILITY
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-shell *,
+  .dashboard-shell *::before,
+  .dashboard-shell *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Fix unnecessary space between dashboard panels */
+.dashboard-content-grid {
+  align-items: start;
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+.dashboard-content-grid > .dashboard-panel {
+  align-self: start;
+  height: auto;
+  min-height: 0;
+}
+
+.dashboard-content-grid--lower {
+  align-items: start;
+  align-content: start;
+  grid-auto-rows: max-content;
+  row-gap: 18px;
+}
+
+.dashboard-content-grid--lower > .dashboard-panel {
+  align-self: start;
+  height: auto;
+  min-height: 0;
 }

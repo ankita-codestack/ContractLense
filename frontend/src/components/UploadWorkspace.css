@@ -1,112 +1,268 @@
 .upload {
-  padding: 80px 40px 120px;
-  max-width: 760px;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 72px 40px 88px;
+  border-radius: 24px;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      115deg,
+      rgba(255, 253, 248, 0.82),
+      rgba(255, 255, 255, 0.70) 48%,
+      rgba(242, 247, 250, 0.76)
+    ),
+    url("/analysis-bg.jpg") center / cover no-repeat;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 24px 70px rgba(18, 38, 57, 0.12);
 }
 
 .upload-head {
-  margin-bottom: 44px;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 40px;
+  max-width: 620px;
+}
+
+.upload-head .eyebrow-mono {
+  display: inline-block;
+  color: #8a6b3f;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  font-weight: 700;
 }
 
 .upload-title {
-  font-size: 34px;
-  margin-top: 14px;
+  margin-top: 16px;
+  color: #172e43;
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 650;
 }
 
 .upload-sub {
-  margin-top: 12px;
-  color: var(--ink-soft);
   max-width: 50ch;
+  margin-top: 14px;
+  color: #485d6d;
+  font-size: 15px;
+  line-height: 1.8;
 }
 
 .dropzone {
-  border: 1.5px dashed var(--border-strong);
-  background: var(--paper);
-  padding: 64px 40px;
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 52px 32px;
   text-align: center;
-  transition: border-color 0.18s ease, background 0.18s ease;
+  border: 1.5px dashed rgba(38, 77, 103, 0.42);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow:
+    0 12px 36px rgba(25, 52, 72, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transition:
+    border-color 0.22s ease,
+    background-color 0.22s ease,
+    box-shadow 0.22s ease,
+    transform 0.22s ease;
+}
+
+.dropzone:hover {
+  border-color: #426d89;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18px 42px rgba(25, 52, 72, 0.11);
 }
 
 .dropzone--active {
-  border-color: var(--navy);
+  border-color: #a5814d;
   border-style: solid;
-  background: var(--ivory-deep);
+  background: rgba(255, 252, 245, 0.94);
+  box-shadow: 0 0 0 4px rgba(165, 129, 77, 0.10);
 }
 
 .dropzone-doc {
-  width: 92px;
-  height: 118px;
-  border: 1px solid var(--border-strong);
-  background: var(--ivory);
-  box-shadow: var(--shadow-raised);
-  padding: 16px 12px;
-  margin-bottom: 26px;
+  display: grid;
+  place-items: center;
+  width: 82px;
+  height: 98px;
+  margin-bottom: 24px;
+  padding: 15px 12px;
+  border: 1px solid rgba(44, 77, 98, 0.22);
+  border-radius: 10px;
+  background: linear-gradient(145deg, #ffffff, #edf3f6);
+  box-shadow: 0 10px 24px rgba(30, 54, 73, 0.12);
+  transform: rotate(-2deg);
+  transition: transform 0.22s ease;
+}
+
+.dropzone:hover .dropzone-doc {
+  transform: rotate(0deg) translateY(-3px);
 }
 
 .dropzone-page {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 9px;
+  width: 100%;
 }
 
 .dropzone-page-line {
   display: block;
-  height: 5px;
-  background: var(--border);
+  height: 4px;
+  border-radius: 4px;
+  background: #b8c9d3;
+}
+
+.dropzone-page-line:first-child {
+  background: #b79a70;
 }
 
 .dropzone-text {
+  margin: 0;
+  color: #243d50;
   font-size: 16px;
-  color: var(--ink);
+  line-height: 1.8;
+  font-weight: 500;
 }
 
 .dropzone-link {
-  background: none;
-  border: none;
   padding: 0;
+  border: none;
+  background: none;
+  color: #234f6d;
   font: inherit;
-  color: var(--navy);
+  font-weight: 700;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-color: rgba(35, 79, 109, 0.45);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.dropzone-link:hover {
+  color: #9a7440;
 }
 
 .dropzone-format {
-  margin-top: 10px;
+  margin-top: 12px;
+  color: #71818b;
+  font-size: 10px;
+  letter-spacing: 0.14em;
 }
 
 .upload-confirm {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 48px;
-  border: 1px solid var(--border);
-  background: var(--paper);
-  padding: 36px;
+  gap: 32px;
+  padding: 30px;
+  border: 1px solid rgba(44, 77, 98, 0.16);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 14px 36px rgba(25, 52, 72, 0.09);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
 .upload-confirm-details {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: 10px;
 }
 
+.upload-confirm-details .eyebrow-mono {
+  color: #8a6b3f;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+}
+
 .upload-filename {
+  overflow-wrap: anywhere;
+  color: #20394d;
   font-family: var(--font-mono);
-  font-size: 15px;
-  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .upload-confirm-actions {
-  margin-top: 18px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.upload-confirm-actions .btn {
+  min-height: 44px;
+  border-radius: 9px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.upload-confirm-actions .btn:hover {
+  transform: translateY(-1px);
+}
+
+.upload-confirm-actions .btn-primary {
+  box-shadow: 0 6px 16px rgba(24, 54, 76, 0.16);
 }
 
 @media (max-width: 640px) {
+  .upload {
+    padding: 44px 20px 52px;
+    border-radius: 18px;
+  }
+
+  .upload-head {
+    margin-bottom: 28px;
+  }
+
+  .upload-title {
+    font-size: 30px;
+  }
+
+  .upload-sub {
+    font-size: 14px;
+  }
+
+  .dropzone {
+    padding: 38px 18px;
+    border-radius: 16px;
+  }
+
   .upload-confirm {
     flex-direction: column;
-    text-align: center;
+    align-items: stretch;
+    gap: 22px;
+    padding: 22px;
+  }
+
+  .upload-confirm-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .upload-confirm-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropzone,
+  .dropzone-doc,
+  .dropzone-link,
+  .upload-confirm-actions .btn {
+    transition: none;
   }
 }

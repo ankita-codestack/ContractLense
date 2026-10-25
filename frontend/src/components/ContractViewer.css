@@ -5,6 +5,9 @@
   gap: 22px;
   align-items: start;
   min-width: 0;
+  height: 320px;
+  max-height: 320px;
+  overflow: hidden;
 }
 
 .viewer-empty {
@@ -18,8 +21,19 @@
   line-height: 1.7;
 }
 
-.viewer-list {
+.viewer-list,
+.viewer-detail {
   min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #a4b5c4 transparent;
+}
+
+.viewer-list {
+  padding-right: 6px;
 }
 
 .viewer-list > .eyebrow-mono {
@@ -114,7 +128,6 @@
 }
 
 .viewer-detail {
-  min-width: 0;
   border-left: 1px solid rgba(7, 23, 57, 0.12);
   padding-left: 22px;
   animation: clause-appear 240ms ease both;
@@ -188,6 +201,7 @@
     opacity: 0.6;
     transform: translateY(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -197,6 +211,9 @@
 @media (max-width: 760px) {
   .viewer {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 135px minmax(0, 1fr);
+    height: 420px;
+    max-height: 420px;
     gap: 18px;
   }
 

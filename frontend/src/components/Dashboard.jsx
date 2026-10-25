@@ -1,4 +1,3 @@
-
 import UploadWorkspace from "./UploadWorkspace.jsx";
 import AnalysisFlow from "./AnalysisFlow.jsx";
 import { useEffect, useState } from "react";
@@ -7,6 +6,14 @@ import RiskPanel from "./RiskPanel.jsx";
 import Timeline from "./Timeline.jsx";
 import QAPanel from "./QAPanel.jsx";
 import "./Dashboard.css";
+
+const SECTION_IDS = [
+  "overview",
+  "contract-summary",
+  "risk-analysis",
+  "key-clauses",
+  "contract-timeline",
+];
 
 export default function Dashboard({
   contract,
@@ -20,122 +27,160 @@ export default function Dashboard({
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [activeClauseId, setActiveClauseId] = useState(null);
-
-  useEffect(() => {
-    setQaHistory(contract?.qaSeed || []);
-  }, [contract?.fileName, contract?.text, contract?.qaSeed]);
-
-  
-async function handleAsk(question) {
-  if (!contract?.text || !question.trim() || qaLoading) return;
-
-  const currentQuestion = question.trim();
-  const answerIndex = qaHistory.length;
-
-  let fullAnswer = "";
-  setQaLoading(true);
-
-  setQaHistory((prev) => [
-    ...prev,
-    {
-      question: currentQuestion,
-      answer: "",
-      clauseRef: null,
-    },
-  ]);
-
-  try {
-    const response = await fetch(
-      "http://localhost:5000/api/contracts/qa",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contractText: contract.text.slice(0, 24000),
-          question: currentQuestion,
-        }),
-      }
-    );
-
-    if (!response.ok || !response.body) {
-      let message = "Failed to answer question.";
-
-      try {
-        const data = await response.json();
-        message = data.message || message;
-      } catch {
-        // The server may return a plain-text error.
-      }
-
-      throw new Error(message);
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { value, done } = await reader.read();
-      console.log("STREAM CHUNK:", new TextDecoder().decode(value || new Uint8Array()));
-
-      if (done) break;
-
-      fullAnswer += decoder.decode(value, { stream: true });
-
-      setQaHistory((prev) =>
-        prev.map((item, index) =>
-          index === answerIndex
-            ? { ...item, answer: fullAnswer }
-            : item
-        )
-      );
-    }
-
-    fullAnswer += decoder.decode();
-
-    setQaHistory((prev) =>
-      prev.map((item, index) =>
-        index === answerIndex
-          ? {
-              ...item,
-              answer: fullAnswer || "No answer received.",
-            }
-          : item
-      )
-    );
-  } catch (error) {
-    console.error("Q&A error:", error);
-
-    setQaHistory((prev) =>
-      prev.map((item, index) =>
-        index === answerIndex
-          ? {
-              ...item,
-              answer:
-                fullAnswer ||
-                `Unable to answer: ${error.message}`,
-            }
-          : item
-      )
-    );
-  } finally {
-    setQaLoading(false);
-  }
-}
-
-
-  function navigateTo(id) {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
+  const [activeSection, setActiveSection] = useState("overview");
 
   const hasContractData = Boolean(
     contract &&
       (contract.text || contract.fileName || contract.clauses?.length)
   );
+
+  useEffect(() => {
+    setQaHistory(contract?.qaSeed || []);
+  }, [contract?.fileName, contract?.text, contract?.qaSeed]);
+
+  useEffect(() => {
+    const sections = SECTION_IDS
+      .map((id) => document.getElementById(id))
+      .filter(Boolean);
+
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSections = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort(
+            (a, b) =>
+              a.boundingClientRect.top - b.boundingClientRect.top
+          );
+
+        if (visibleSections.length > 0) {
+          setActiveSection(visibleSections[0].target.id);
+        }
+      },
+      {
+        rootMargin: "-15% 0px -70% 0px",
+        threshold: 0,
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, [hasContractData]);
+
+  async function handleAsk(question) {
+    if (!contract?.text || !question.trim() || qaLoading) return;
+
+    const currentQuestion = question.trim();
+    const answerIndex = qaHistory.length;
+
+    let fullAnswer = "";
+    setQaLoading(true);
+
+    setQaHistory((prev) => [
+      ...prev,
+      {
+        question: currentQuestion,
+        answer: "",
+        clauseRef: null,
+      },
+    ]);
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/contracts/qa",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contractText: contract.text.slice(0, 24000),
+            question: currentQuestion,
+          }),
+        }
+      );
+
+      if (!response.ok || !response.body) {
+        let message = "Failed to answer question.";
+
+        try {
+          const data = await response.json();
+          message = data.message || message;
+        } catch {
+          // The server may return a plain-text error.
+        }
+
+        throw new Error(message);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { value, done } = await reader.read();
+
+        if (done) break;
+
+        fullAnswer += decoder.decode(value, { stream: true });
+
+        setQaHistory((prev) =>
+          prev.map((item, index) =>
+            index === answerIndex
+              ? { ...item, answer: fullAnswer }
+              : item
+          )
+        );
+      }
+
+      fullAnswer += decoder.decode();
+
+      setQaHistory((prev) =>
+        prev.map((item, index) =>
+          index === answerIndex
+            ? {
+                ...item,
+                answer: fullAnswer || "No answer received.",
+              }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Q&A error:", error);
+
+      setQaHistory((prev) =>
+        prev.map((item, index) =>
+          index === answerIndex
+            ? {
+                ...item,
+                answer:
+                  fullAnswer || `Unable to answer: ${error.message}`,
+              }
+            : item
+        )
+      );
+    } finally {
+      setQaLoading(false);
+    }
+  }
+
+  function navigateTo(id) {
+    const section = document.getElementById(id);
+
+    if (!section) return;
+
+    setActiveSection(id);
+
+    section.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
+  function openAssistant() {
+    setIsChatOpen(true);
+  }
 
   const parties = contract?.parties || [];
   const financialTerms = contract?.financialTerms || [];
@@ -151,7 +196,10 @@ async function handleAsk(question) {
         : "standard",
   }));
 
-  const highRisks = risks.filter((risk) => risk.level === "high").length;
+  const highRisks = risks.filter(
+    (risk) => risk.level === "high"
+  ).length;
+
   const reviewRisks = risks.filter(
     (risk) => risk.level === "review"
   ).length;
@@ -168,9 +216,7 @@ async function handleAsk(question) {
         <button
           type="button"
           className="sidebar-brand"
-          onClick={() =>
-            window.scrollTo({ top: 0, behavior: "smooth" })
-          }
+          onClick={() => navigateTo("overview")}
         >
           <span className="sidebar-brand-mark">C</span>
           <span>
@@ -181,13 +227,12 @@ async function handleAsk(question) {
 
         <p className="sidebar-label">WORKSPACE</p>
 
-        <nav
-          className="sidebar-nav"
-          aria-label="Dashboard navigation"
-        >
+        <nav className="sidebar-nav" aria-label="Dashboard navigation">
           <button
             type="button"
-            className="sidebar-link sidebar-link--active"
+            className={`sidebar-link ${
+              activeSection === "overview" ? "sidebar-link--active" : ""
+            }`}
             onClick={() => navigateTo("overview")}
           >
             <span>▦</span> Dashboard
@@ -195,7 +240,11 @@ async function handleAsk(question) {
 
           <button
             type="button"
-            className="sidebar-link"
+            className={`sidebar-link ${
+              activeSection === "contract-summary"
+                ? "sidebar-link--active"
+                : ""
+            }`}
             onClick={() => navigateTo("contract-summary")}
           >
             <span>▤</span> Contract details
@@ -203,7 +252,11 @@ async function handleAsk(question) {
 
           <button
             type="button"
-            className="sidebar-link"
+            className={`sidebar-link ${
+              activeSection === "risk-analysis"
+                ? "sidebar-link--active"
+                : ""
+            }`}
             onClick={() => navigateTo("risk-analysis")}
           >
             <span>◇</span> Risk analysis
@@ -211,7 +264,11 @@ async function handleAsk(question) {
 
           <button
             type="button"
-            className="sidebar-link"
+            className={`sidebar-link ${
+              activeSection === "key-clauses"
+                ? "sidebar-link--active"
+                : ""
+            }`}
             onClick={() => navigateTo("key-clauses")}
           >
             <span>≡</span> Key clauses
@@ -219,7 +276,11 @@ async function handleAsk(question) {
 
           <button
             type="button"
-            className="sidebar-link"
+            className={`sidebar-link ${
+              activeSection === "contract-timeline"
+                ? "sidebar-link--active"
+                : ""
+            }`}
             onClick={() => navigateTo("contract-timeline")}
           >
             <span>◷</span> Timeline
@@ -227,8 +288,10 @@ async function handleAsk(question) {
 
           <button
             type="button"
-            className="sidebar-link"
-            onClick={() => setIsChatOpen(true)}
+            className={`sidebar-link ${
+              isChatOpen ? "sidebar-link--active" : ""
+            }`}
+            onClick={openAssistant}
           >
             <span>✳</span> Q&A assistant
           </button>
@@ -239,10 +302,7 @@ async function handleAsk(question) {
           <div>
             <strong>Need a closer look?</strong>
             <p>Ask questions about your agreement.</p>
-            <button
-              type="button"
-              onClick={() => setIsChatOpen(true)}
-            >
+            <button type="button" onClick={openAssistant}>
               Open assistant →
             </button>
           </div>
@@ -272,10 +332,7 @@ async function handleAsk(question) {
               <kbd>⌘ K</kbd>
             </label>
 
-            <div
-              className="topbar-avatar"
-              title="ContractLens workspace"
-            >
+            <div className="topbar-avatar" title="ContractLens workspace">
               CL
             </div>
           </div>
@@ -284,9 +341,7 @@ async function handleAsk(question) {
         <div className="dashboard-content">
           <section className="dashboard-welcome" id="overview">
             <div>
-              <p className="dashboard-overline">
-                CONTRACT INTELLIGENCE
-              </p>
+              <p className="dashboard-overline">CONTRACT INTELLIGENCE</p>
               <h1>Contract overview</h1>
               <p className="dashboard-welcome-copy">
                 Understand your agreement, identify risks, and stay
@@ -300,15 +355,10 @@ async function handleAsk(question) {
             </div>
           </section>
 
-          <section
-            className="dashboard-upload-section"
-            id="upload-contract"
-          >
+          <section className="dashboard-upload-section" id="upload-contract">
             <div className="dashboard-panel-heading">
               <div>
-                <p className="dashboard-overline">
-                  CONTRACT WORKSPACE
-                </p>
+                <p className="dashboard-overline">CONTRACT WORKSPACE</p>
                 <h2>Upload a contract</h2>
                 <p className="dashboard-panel-description">
                   Select a PDF to extract clauses, review risks, and
@@ -324,10 +374,7 @@ async function handleAsk(question) {
             )}
 
             {isAnalyzing ? (
-              <AnalysisFlow
-                fileName={fileName}
-                onComplete={() => {}}
-              />
+              <AnalysisFlow fileName={fileName} onComplete={() => {}} />
             ) : (
               <UploadWorkspace onFileReady={onFileReady} />
             )}
@@ -344,9 +391,7 @@ async function handleAsk(question) {
                 </div>
 
                 <div className="document-banner-info">
-                  <p className="dashboard-overline">
-                    CURRENTLY REVIEWING
-                  </p>
+                  <p className="dashboard-overline">CURRENTLY REVIEWING</p>
                   <h2>{contract.fileName || "Untitled contract"}</h2>
                   <p>{contract.title || "Contract analysis"}</p>
                 </div>
@@ -359,57 +404,41 @@ async function handleAsk(question) {
                 </div>
               </section>
 
-              <section
-                className="dashboard-stat-grid"
-                aria-label="Contract metrics"
-              >
+              <section className="dashboard-stat-grid" aria-label="Contract metrics">
                 <article className="dashboard-stat-card">
                   <span className="stat-icon stat-icon--blue">▤</span>
                   <p>Total clauses</p>
                   <strong>{clauses.length}</strong>
-                  <span className="stat-footnote">
-                    Extracted from document
-                  </span>
+                  <span className="stat-footnote">Extracted from document</span>
                 </article>
 
                 <article className="dashboard-stat-card">
                   <span className="stat-icon stat-icon--red">◇</span>
                   <p>High risks</p>
                   <strong>{highRisks}</strong>
-                  <span className="stat-footnote">
-                    Require close attention
-                  </span>
+                  <span className="stat-footnote">Require close attention</span>
                 </article>
 
                 <article className="dashboard-stat-card">
                   <span className="stat-icon stat-icon--sand">◎</span>
                   <p>Needs review</p>
                   <strong>{reviewRisks}</strong>
-                  <span className="stat-footnote">
-                    Clauses to examine
-                  </span>
+                  <span className="stat-footnote">Clauses to examine</span>
                 </article>
 
                 <article className="dashboard-stat-card">
                   <span className="stat-icon stat-icon--teal">◷</span>
                   <p>Key dates</p>
                   <strong>{timelineEvents.length}</strong>
-                  <span className="stat-footnote">
-                    Deadlines and milestones
-                  </span>
+                  <span className="stat-footnote">Deadlines and milestones</span>
                 </article>
               </section>
 
-              <section
-                className="dashboard-content-grid"
-                id="contract-summary"
-              >
+              <section className="dashboard-content-grid" id="contract-summary">
                 <article className="dashboard-panel dashboard-summary-panel">
                   <div className="dashboard-panel-heading">
                     <div>
-                      <p className="dashboard-overline">
-                        DOCUMENT BREAKDOWN
-                      </p>
+                      <p className="dashboard-overline">DOCUMENT BREAKDOWN</p>
                       <h2>Contract summary</h2>
                     </div>
                     <span className="panel-number">01</span>
@@ -468,9 +497,7 @@ async function handleAsk(question) {
                 >
                   <div className="dashboard-panel-heading">
                     <div>
-                      <p className="dashboard-overline">
-                        REVIEW PRIORITIES
-                      </p>
+                      <p className="dashboard-overline">REVIEW PRIORITIES</p>
                       <h2>Risk analysis</h2>
                     </div>
                     <span className="panel-number">02</span>
@@ -505,6 +532,7 @@ async function handleAsk(question) {
                       if (matchedClause) {
                         setSearch("");
                         setActiveClauseId(matchedClause.id);
+                        setActiveSection("contract-summary");
 
                         document
                           .getElementById("contract-summary")
@@ -525,9 +553,7 @@ async function handleAsk(question) {
                 >
                   <div className="dashboard-panel-heading">
                     <div>
-                      <p className="dashboard-overline">
-                        IMPORTANT PROVISIONS
-                      </p>
+                      <p className="dashboard-overline">IMPORTANT PROVISIONS</p>
                       <h2>Key clauses</h2>
                     </div>
                     <span className="panel-number">03</span>
@@ -568,9 +594,7 @@ async function handleAsk(question) {
                 >
                   <div className="dashboard-panel-heading">
                     <div>
-                      <p className="dashboard-overline">
-                        DEADLINES & MILESTONES
-                      </p>
+                      <p className="dashboard-overline">DEADLINES & MILESTONES</p>
                       <h2>Contract timeline</h2>
                     </div>
                     <span className="panel-number">04</span>
