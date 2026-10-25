@@ -20,7 +20,7 @@
     "express": "^5.2.1",
     "groq-sdk": "^1.6.0",
     "multer": "^2.4.0",
-    "pdf-parse": "^2.8.5"
+    "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"
