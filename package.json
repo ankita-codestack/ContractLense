@@ -1,9 +1,13 @@
+
 {
   "name": "contractlense",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "concurrently -k -n BACKEND,FRONTEND \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "node backend/server.js",
+    "dev:frontend": "npm run dev --prefix frontend",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,6 +20,9 @@
     "express": "^5.2.1",
     "groq-sdk": "^1.6.0",
     "multer": "^2.4.0",
-    "pdf-parse": "^2.4.5"
+    "pdf-parse": "^2.8.5"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
   }
 }

@@ -25,55 +25,105 @@ export default function Dashboard({
     setQaHistory(contract?.qaSeed || []);
   }, [contract?.fileName, contract?.text, contract?.qaSeed]);
 
-  async function handleAsk(question) {
-    if (!contract?.text || !question.trim() || qaLoading) return;
+  
+async function handleAsk(question) {
+  if (!contract?.text || !question.trim() || qaLoading) return;
 
-    setQaLoading(true);
+  const currentQuestion = question.trim();
+  const answerIndex = qaHistory.length;
 
-    try {
-      const response = await fetch(
-        "http://localhost:5000/api/contracts/qa",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contractText: contract.text.slice(0, 24000),
-            question: question.trim(),
-          }),
-        }
-      );
+  let fullAnswer = "";
+  setQaLoading(true);
 
-      const data = await response.json();
+  setQaHistory((prev) => [
+    ...prev,
+    {
+      question: currentQuestion,
+      answer: "",
+      clauseRef: null,
+    },
+  ]);
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Failed to answer question.");
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/contracts/qa",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contractText: contract.text.slice(0, 24000),
+          question: currentQuestion,
+        }),
+      }
+    );
+
+    if (!response.ok || !response.body) {
+      let message = "Failed to answer question.";
+
+      try {
+        const data = await response.json();
+        message = data.message || message;
+      } catch {
+        // The server may return a plain-text error.
       }
 
-      setQaHistory((prev) => [
-        ...prev,
-        {
-          question: question.trim(),
-          answer: data.answer,
-          clauseRef: data.clauseRef || null,
-        },
-      ]);
-    } catch (error) {
-      console.error("Q&A error:", error);
-
-      setQaHistory((prev) => [
-        ...prev,
-        {
-          question: question.trim(),
-          answer: `Unable to answer: ${error.message}`,
-          clauseRef: null,
-        },
-      ]);
-    } finally {
-      setQaLoading(false);
+      throw new Error(message);
     }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { value, done } = await reader.read();
+      console.log("STREAM CHUNK:", new TextDecoder().decode(value || new Uint8Array()));
+
+      if (done) break;
+
+      fullAnswer += decoder.decode(value, { stream: true });
+
+      setQaHistory((prev) =>
+        prev.map((item, index) =>
+          index === answerIndex
+            ? { ...item, answer: fullAnswer }
+            : item
+        )
+      );
+    }
+
+    fullAnswer += decoder.decode();
+
+    setQaHistory((prev) =>
+      prev.map((item, index) =>
+        index === answerIndex
+          ? {
+              ...item,
+              answer: fullAnswer || "No answer received.",
+            }
+          : item
+      )
+    );
+  } catch (error) {
+    console.error("Q&A error:", error);
+
+    setQaHistory((prev) =>
+      prev.map((item, index) =>
+        index === answerIndex
+          ? {
+              ...item,
+              answer:
+                fullAnswer ||
+                `Unable to answer: ${error.message}`,
+            }
+          : item
+      )
+    );
+  } finally {
+    setQaLoading(false);
   }
+}
+
 
   function navigateTo(id) {
     document.getElementById(id)?.scrollIntoView({

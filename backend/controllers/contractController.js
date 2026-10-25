@@ -1,7 +1,6 @@
+
 const { analyzeContract } = require("../services/contractService");
-
 const { answerContractQuestion } = require("../services/qaService");
-
 
 async function analyze(req, res) {
   try {
@@ -13,7 +12,6 @@ async function analyze(req, res) {
     }
 
     const result = await analyzeContract(req.file);
-
     res.json(result);
   } catch (error) {
     console.error("Contract analysis error:", error);
@@ -36,26 +34,31 @@ async function askQuestion(req, res) {
       });
     }
 
-    const answer = await answerContractQuestion(
-      contractText,
-      question
-    );
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("X-Accel-Buffering", "no");
 
-    res.json({
-      success: true,
-      answer,
-      clauseRef: null,
-    });
+    await answerContractQuestion(contractText, question, (chunk) => {
+  console.log("BACKEND CHUNK:", chunk);
+  if (!res.destroyed) {
+    res.write(chunk);
+  }
+});
+
+    res.end();
   } catch (error) {
     console.error("Contract Q&A error:", error.message);
 
-    res.status(500).json({
-      success: false,
-      message: "Failed to answer the contract question.",
-    });
+    if (res.headersSent) {
+      res.end();
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Failed to answer the contract question.",
+      });
+    }
   }
 }
-
 
 module.exports = {
   analyze,
