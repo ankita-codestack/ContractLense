@@ -1,77 +1,80 @@
-# ContractLens
+# ContractLens 📄
+### AI-Powered Contract Analysis & Risk Assessment Platform
 
-**From PDF to Insights — Smarter, Faster, Safer.**
+ContractLens is an AI-powered web application designed to simplify the process of understanding and analyzing legal contracts. It uses multi-agent AI workflows to extract important contract information, identify potential risks, highlight critical clauses, and answer questions based on uploaded documents.
 
-> Built for the **Agentic AI Hackathon**, conducted by **Product Space**.
+The platform aims to make complex legal documents easier to understand through structured insights and intelligent analysis.
 
-ContractLens is a multi-agent AI system that reads a contract for you — extracting the key facts, flagging risky clauses, building a deadline timeline, and answering your questions with the exact clause it got the answer from.
+## ✨ Features
 
----
+- **PDF Contract Upload** – Upload legal agreements in PDF format for analysis.
+- **Information Extraction** – Automatically extract contract titles, parties, financial terms, obligations, and important dates.
+- **AI-Powered Risk Detection** – Identify potentially risky clauses and contractual terms.
+- **Multi-Agent Analysis** – Uses multiple AI processing stages for contract extraction and risk verification.
+- **Clause Analysis** – Understand important clauses and their implications.
+- **AI Contract Q&A** – Ask questions about uploaded contracts and receive context-based answers.
+- **Structured Insights** – View extracted information and analysis in an organized format.
 
-## The Problem
+## 🧠 AI Workflow
 
-Most people sign contracts without fully reading them. Not because they don't care, but because manually scanning pages of legal text to catch one risky clause, a hidden renewal, or a buried termination notice is slow, tedious, and easy to get wrong. This affects far more than lawyers — freelancers, founders, and anyone who has ever clicked "I agree" too fast.
+ContractLens follows a multi-stage AI analysis workflow:
 
-## The Solution
+1. **Document Processing** – Extract text from uploaded PDF contracts.
+2. **Contract Extraction Agent** – Identify key information, parties, financial terms, obligations, clauses, and timelines.
+3. **Risk Analysis Agent** – Analyze contractual clauses and identify potential risks.
+4. **Risk Verification** – Verify identified risks against the original contract content.
+5. **Q&A Processing** – Generate answers to user questions using the extracted contract context.
 
-Instead of a single do-everything chatbot, ContractLens uses a **pipeline of specialized agents**, each responsible for one clear task, passing structured output to the next.
+## 🛠️ Tech Stack
 
-```
-Contract PDF Upload
-        │
-        ▼
-Agent 1 — Extractor          → structured data + source snippets
-        │
-        ▼
-Agent 2 — Risk Flagger       → 🟢 Standard / 🟡 Review-worthy / 🔴 High-risk
-        │
-        ▼
-Agent 3 — Timeline Builder   → chronological deadlines & renewals
-        │
-        ▼
-Frontend Display             → summary, risk-tagged clauses, timeline
-        │
-        ▼
-Agent 4 — Q&A + Version Compare → answers with source clause reference,
-                                   compares two contract versions
-```
-
-## Features
-
-- **Structured extraction** — parties, dates, clauses, and obligations pulled out of raw contract text
-- **Risk flagging** — every clause tagged Standard, Review-worthy, or High-risk with a reason
-- **Timeline view** — all deadlines and renewals sorted chronologically in one place
-- **Source traceability** — every extracted fact and every answer is backed by the exact clause it came from, so nothing is a black box
-- **Version comparison** *(stretch goal)* — upload two versions of the same contract and get a plain list of what changed
-
-## Tech Stack
-
-| Layer | Tech |
+| Technology | Purpose |
 |---|---|
-| Frontend | React.js |
-| Backend | Node.js |
-| PDF parsing | `pdf-parse` |
-| AI / Agents | LLM API (Groq / Gemini) — one prompt per agent stage |
+| React.js | Frontend development |
+| Vite | Frontend build tool |
+| Node.js | Backend runtime |
+| Express.js | REST API development |
+| Groq AI | AI-powered contract analysis |
+| PDF Parse | PDF text extraction |
+| Multer | File upload handling |
+| JavaScript | Application development |
 
-No heavy local compute is required — every agent call is a lightweight API request, so the whole pipeline runs comfortably on a standard laptop.
+## 📂 Project Structure
 
-## How It Works (Step by Step)
+```text
+ContractLense/
+│
+├── client/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── ...
+│   └── package.json
+│
+├── server/
+│   ├── routes/
+│   ├── services/
+│   ├── ...
+│   ├── .env
+│   └── package.json
+│
+└── README.md
+```
 
-1. **Upload** — user uploads a contract PDF; `pdf-parse` extracts the raw text.
-2. **Extract** — Agent 1 turns the raw text into structured JSON (parties, dates, clauses, obligations) with a source snippet for every fact.
-3. **Flag risk** — Agent 2 re-checks each clause and tags it Standard, Review-worthy, or High-risk, with a short reason.
-4. **Build timeline** — Agent 3 sorts every date-related fact into a chronological timeline.
-5. **Display** — the frontend shows a summary, the risk-tagged clause list, and the timeline in one clean view.
-6. **Ask & compare** — Agent 4 answers natural-language questions about the contract (always citing the source clause) and, time permitting, compares two versions of the same contract to highlight what changed.
+*Note: The structure above represents the high-level application organization.*
 
-## Status
+## 🔐 Security & Limitations
 
-🚧 Currently at the architecture / planning stage — moving into prototype build next.
+- Do not upload confidential legal documents without appropriate authorization.
+- Keep API keys and sensitive configuration in environment variables.
+- AI-generated analysis is intended to assist contract understanding and should not be considered a substitute for professional legal advice.
 
-## Team
+## 👩‍💻 Author
 
-Built solo for the Agentic AI Hackathon by Product Space.
+**Ankita Sharma**
 
+B.Tech – Computer Science & Engineering
 ---
 
-*"Your contract, in a clearer lens."*
+<p align="center">
+  Built with ❤️ to make contract analysis smarter and simpler.
+</p>
